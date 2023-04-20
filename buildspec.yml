@@ -1,0 +1,50 @@
+version: 0.2
+
+env:
+  variables:
+    VERSION: "prod"
+    STACK_NAME: "at-stack-prod" 
+
+    S3_BUCKET: "at-bucket-prod"
+    TEMPLATE: "template.yaml"
+    TEMPLATE_PATH: ".aws-sam/build"
+    PACKGED_TEMPLATE: "template.yaml"
+    CAPABILITY: "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+
+
+phases:
+  install:
+    commands:
+      - echo installing SAM ...
+      - pip install awscli aws-sam-cli
+      # Debugging
+      - go env | sort
+      - pwd
+      # - find .
+
+  pre_build:
+    commands:
+      - echo Installing dependencies ...
+      # Fetch all dependencies
+      - go clean -modcache
+      - go get ./...
+      - echo Installing dependencies done
+      
+
+  build:
+    commands:
+      - echo Build stated on `date`
+      - make
+      - sam deploy --debug --template-file $PACKGED_TEMPLATE --stack-name $STACK_NAME --capabilities $CAPABILITY --s3-bucket $S3_BUCKET --parameter-overrides Version=$VERSION
+
+
+  post_build:
+    commands:
+      - echo Deployment completed on `date`
+
+# artifacts:
+#   files:
+#     - '**/*'
+#   base-directory: '.aws-sam/build'
+
+  
