@@ -83,6 +83,8 @@ Resources:
       AttributeDefinitions:
       - AttributeName: PK
         AttributeType: S
+      - AttributeName: uuid
+        AttributeType: S
       KeySchema:
       - AttributeName: PK
         KeyType: HASH
