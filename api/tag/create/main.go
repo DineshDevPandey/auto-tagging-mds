@@ -3,7 +3,6 @@ package create
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,7 +47,7 @@ func (sc *tagSvc) tagCreate(ctx context.Context, request events.APIGatewayProxyR
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
-			ErrorMsg: aws.String(errors.New(u.ErrorCouldNotUnMarshalItem).Error()),
+			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
