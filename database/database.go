@@ -3,7 +3,7 @@ package database
 import "github.com/auto-tagging-mds/database/models"
 
 type Database interface {
-	CreateService(models.ServiceRequest) error
+	CreateService(models.ServiceRequest) (models.ServiceRequest, error)
 	GetAllServices() ([]models.ServiceResponse, error)
 	GetService(name string) (models.ServiceResponse, error)
 	UpdateService(models.ServiceRequest) error

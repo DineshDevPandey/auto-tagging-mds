@@ -40,7 +40,7 @@ func New(tablesName models.Tables) (*Database, error) {
 	return &db, nil
 }
 
-func (d *Database) CreateService(service models.ServiceRequest) error {
+func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceRequest, error) {
 
 	fmt.Println("1CreateService : ServiceUUID : ", service.ServiceUUID)
 	// if its a fresh entry
@@ -55,7 +55,7 @@ func (d *Database) CreateService(service models.ServiceRequest) error {
 
 	av, err := dynamodbattribute.MarshalMap(service)
 	if err != nil {
-		return err
+		return service, err
 	}
 
 	fmt.Println("3CreateService : service.PK : ", service.PK)
@@ -70,12 +70,12 @@ func (d *Database) CreateService(service models.ServiceRequest) error {
 
 	_, err = d.db.PutItem(input)
 	if err != nil {
-		return err
+		return service, err
 	}
 
 	fmt.Println("5CreateService : service.PK  :  ", input)
 
-	return nil
+	return service, nil
 }
 
 func (d *Database) GetAllServices() ([]models.ServiceResponse, error) {
@@ -196,7 +196,7 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest) error {
 	// new updated at
 	updatedService.UpdatedAt = utils.DateString("datetime")
 	updatedService.PK = utils.GetPartitionKey(utils.SERVICE, updatedService.ServiceName, blank)
-	err = d.CreateService(updatedService)
+	_, err = d.CreateService(updatedService)
 	if err != nil {
 		// TODO: restore old entry in case of error
 		return err

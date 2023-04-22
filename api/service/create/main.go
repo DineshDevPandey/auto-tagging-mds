@@ -51,14 +51,14 @@ func (sc *serviceCreateSvc) serviceCreate(ctx context.Context, request events.AP
 		})
 	}
 
-	err := sc.db.CreateService(svc)
+	service, err := sc.db.CreateService(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, "{}")
+	return u.ApiResponse(http.StatusCreated, service)
 }
 
 func (sc *serviceCreateSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
