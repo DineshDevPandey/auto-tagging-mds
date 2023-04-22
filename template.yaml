@@ -18,13 +18,13 @@ Resources:
         AllowMethods: "'DELETE,GET,OPTIONS,POST,PUT'"
         AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"  
-      GatewayResponses:
-        UNAUTHORIZED:
-          ResponseParameters:
-            Headers:
-              Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-              Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+      # GatewayResponses:
+      #   UNAUTHORIZED:
+      #     ResponseParameters:
+      #       Headers:
+      #         Access-Control-Allow-Origin: "'*'"
+      #         Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      #         Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
       # Auth:
       #   Authorizers:
       #     CognitoAuthorizer:
