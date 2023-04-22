@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/auto-tagging-mds/database/models"
@@ -41,6 +42,7 @@ func New(tablesName models.Tables) (*Database, error) {
 
 func (d *Database) CreateService(service models.ServiceRequest) error {
 
+	fmt.Println("1CreateService : ServiceUUID : ", service.ServiceUUID)
 	// if its a fresh entry
 	if service.ServiceUUID == "" {
 		service.ServiceUUID = utils.GetUUID()
@@ -49,20 +51,29 @@ func (d *Database) CreateService(service models.ServiceRequest) error {
 		service.PK = utils.GetPartitionKey(utils.SERVICE, service.ServiceName, blank)
 	}
 
+	fmt.Println("2CreateService : service.PK : ", service.PK)
+
 	av, err := dynamodbattribute.MarshalMap(service)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("3CreateService : service.PK : ", service.PK)
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
 		TableName: aws.String(d.tableName.MDSTable),
 	}
 
+	fmt.Println("4CreateService : service.PK : ", d.tableName.MDSTable)
+	fmt.Println("4CreateService : service.PK : ", input)
+
 	_, err = d.db.PutItem(input)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("5CreateService : service.PK  :  ", input)
 
 	return nil
 }

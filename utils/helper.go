@@ -20,6 +20,7 @@ const (
 
 func GetPartitionKey(entity int, name string, value string) string {
 	partitionKey := ""
+	fmt.Println("GetPartitionKey : entity : ", entity)
 	switch entity {
 	case SERVICE:
 		partitionKey = "SR#" + name
@@ -34,6 +35,7 @@ func GetPartitionKey(entity int, name string, value string) string {
 	case RULE:
 		partitionKey = "RL#" + name
 	}
+	fmt.Println("GetPartitionKey : partitionKey : ", partitionKey)
 	return partitionKey
 }
 
