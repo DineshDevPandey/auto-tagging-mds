@@ -44,6 +44,16 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 
 	// if its a fresh entry
 	if service.ServiceUUID == "" {
+		// check if the service already exists
+		existService, err := d.GetService(service.ServiceName)
+		if err != nil {
+			return service, err
+		}
+
+		if existService.ServiceName != "" {
+			return service, errors.New("Service already exist")
+		}
+
 		service.ServiceUUID = utils.GetUUID()
 		datetime := utils.DateString("datetime")
 		service.CreatedAt, service.UpdatedAt = datetime, datetime
@@ -56,7 +66,7 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		return service, err
 	}
 
-	av = utils.NilToEmptySlice(av)
+	av = utils.NilToEmptySlice(av, "category")
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -175,10 +185,9 @@ func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error)
 	return models.ServiceResponse{}, nil
 }
 
-func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceName string) error {
+func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUUID string) error {
 
-	uuid := updatedService.ServiceUUID
-	oldService, err := d.GetServiceByUUID(uuid)
+	oldService, err := d.GetServiceByUUID(serviceUUID)
 	if err != nil {
 		return err
 	}
@@ -246,6 +255,16 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 
 	// if its a fresh entry
 	if company.CompanyUUID == "" {
+		// check if companyalready exist
+		existCompany, err := d.GetCompany(company.CompanyName)
+		if err != nil {
+			return err
+		}
+
+		if existCompany.CompanyName != "" {
+			return errors.New("Company already exist")
+		}
+
 		company.CompanyUUID = utils.GetUUID()
 		datetime := utils.DateString("datetime")
 		company.CreatedAt, company.UpdatedAt = datetime, datetime
@@ -258,7 +277,7 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 		return err
 	}
 
-	av = utils.NilToEmptySlice(av)
+	av = utils.NilToEmptySlice(av, "service_list")
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -397,12 +416,15 @@ func (d *Database) GetCompanyByUUID(uuid string) (models.CompanyResponse, error)
 	return models.CompanyResponse{}, nil
 }
 
-func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyName string) error {
+func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyUUID string) error {
 
-	uuid := updatedCompany.CompanyUUID
-	oldCompany, err := d.GetCompanyByUUID(uuid)
+	oldCompany, err := d.GetCompanyByUUID(companyUUID)
 	if err != nil {
 		return err
+	}
+
+	if oldCompany.CompanyName == "" {
+		return errors.New("company not found")
 	}
 
 	oldCompanyName := utils.GetRangeKey(utils.COMPANY, oldCompany.CompanyName, blank)

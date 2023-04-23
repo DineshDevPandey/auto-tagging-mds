@@ -119,8 +119,8 @@ func DateString(t string) string {
 	return time.Now().In(loc).Format("2006-01-02 15:04:05")
 }
 
-func NilToEmptySlice(av map[string]*dynamodb.AttributeValue) map[string]*dynamodb.AttributeValue {
+func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[string]*dynamodb.AttributeValue {
 	empty := []*dynamodb.AttributeValue{}
-	av["category"] = &dynamodb.AttributeValue{L: empty}
+	av[field] = &dynamodb.AttributeValue{L: empty}
 	return av
 }

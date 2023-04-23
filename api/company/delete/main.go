@@ -49,7 +49,7 @@ func (sc *companySvc) serviceDelete(ctx context.Context, request events.APIGatew
 		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
-	err := sc.db.DeleteService(companyName)
+	err := sc.db.DeleteCompany(companyName)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

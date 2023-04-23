@@ -45,9 +45,9 @@ func initSvc() (*serviceUpdateSvc, error) {
 func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var svc m.ServiceRequest
 
-	serviceName, ok := request.PathParameters["service_name"]
+	serviceName, ok := request.PathParameters["service_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service_name"})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service uuid"})
 	}
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
@@ -63,7 +63,7 @@ func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.AP
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, "{}")
+	return u.ApiResponse(http.StatusCreated, svc)
 }
 
 func (sc *serviceUpdateSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

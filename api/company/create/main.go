@@ -58,7 +58,7 @@ func (sc *companySvc) companyCreate(ctx context.Context, request events.APIGatew
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, "{}")
+	return u.ApiResponse(http.StatusCreated, svc)
 }
 
 func (sc *companySvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

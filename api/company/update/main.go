@@ -42,12 +42,12 @@ func initSvc() (*companySvc, error) {
 	}, nil
 }
 
-func (sc *companySvc) serviceUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (sc *companySvc) companyUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var svc m.CompanyRequest
 
-	companyName, ok := request.PathParameters["company_name"]
+	companyName, ok := request.PathParameters["company_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company uuid"})
 	}
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
@@ -67,7 +67,7 @@ func (sc *companySvc) serviceUpdate(ctx context.Context, request events.APIGatew
 }
 
 func (sc *companySvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceUpdate(ctx, request)
+	events, err := sc.companyUpdate(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}
