@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/auto-tagging-mds/utils"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -43,17 +44,21 @@ func initSvc() (*serviceShowSvc, error) {
 
 func (sc *serviceShowSvc) serviceShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	// get query parameter
-	serviceID, ok := request.QueryStringParameters["service_id"]
+	// get path parameter
+	serviceName, ok := request.PathParameters["service_name"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service_name"})
 	}
 
-	service, err := sc.db.GetService(serviceID)
+	service, err := sc.db.GetService(serviceName)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
+	}
+
+	if service.ServiceName == "" {
+		return u.ApiResponse(http.StatusNotFound, utils.EmptyStruct{})
 	}
 
 	return u.ApiResponse(http.StatusOK, service)

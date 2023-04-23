@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/auto-tagging-mds/utils"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -44,7 +45,7 @@ func initSvc() (*tagSvc, error) {
 func (sc *tagSvc) tagShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// get query parameter
-	key, ok := request.QueryStringParameters["tag_key"]
+	key, ok := request.PathParameters["tag_key"]
 	if ok != true {
 		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
 	}
@@ -54,6 +55,10 @@ func (sc *tagSvc) tagShow(ctx context.Context, request events.APIGatewayProxyReq
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
+	}
+
+	if tag.Key == "" {
+		return u.ApiResponse(http.StatusNotFound, utils.EmptyStruct{})
 	}
 
 	return u.ApiResponse(http.StatusOK, tag)

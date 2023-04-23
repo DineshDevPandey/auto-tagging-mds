@@ -44,7 +44,7 @@ func initSvc() (*tagSvc, error) {
 func (sc *tagSvc) tagDelete(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// get query parameter
-	key, ok := request.QueryStringParameters["tag_key"]
+	key, ok := request.PathParameters["tag_key"]
 	if ok != true {
 		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
 	}

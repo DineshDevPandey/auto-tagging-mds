@@ -1,7 +1,7 @@
 package dynamodb
 
 import (
-	"fmt"
+	"errors"
 	"os"
 
 	"github.com/auto-tagging-mds/database/models"
@@ -42,7 +42,6 @@ func New(tablesName models.Tables) (*Database, error) {
 
 func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceRequest, error) {
 
-	fmt.Println("1CreateService : ServiceUUID : ", service.ServiceUUID)
 	// if its a fresh entry
 	if service.ServiceUUID == "" {
 		service.ServiceUUID = utils.GetUUID()
@@ -52,29 +51,22 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank)
 	}
 
-	fmt.Println("2CreateService : service.PK : ", service.PK)
-
 	av, err := dynamodbattribute.MarshalMap(service)
 	if err != nil {
 		return service, err
 	}
 
-	fmt.Println("3CreateService : service.PK : ", service.PK)
+	av = utils.NilToEmptySlice(av)
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
 		TableName: aws.String(d.tableName.MDSTable),
 	}
 
-	fmt.Println("4CreateService : service.PK : ", d.tableName.MDSTable)
-	fmt.Println("4CreateService : service.PK : ", input)
-
 	_, err = d.db.PutItem(input)
 	if err != nil {
 		return service, err
 	}
-
-	fmt.Println("5CreateService : service.PK  :  ", input)
 
 	return service, nil
 }
@@ -86,7 +78,6 @@ func (d *Database) GetAllServices() ([]models.ServiceResponse, error) {
 	pkPrefix := utils.GetPartitionKey(utils.SERVICE)
 
 	keyCond := expression.Key(pkName).Equal(expression.Value(pkPrefix))
-	// keyCond = expression.KeyAnd(expression.Key(pkName).Equal(expression.Value(pkPrefix)), expression.Key("use_date").Equal(expression.Value(checkIN)))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
@@ -99,8 +90,6 @@ func (d *Database) GetAllServices() ([]models.ServiceResponse, error) {
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 	}
-
-	fmt.Println("-------------- input : ", input)
 
 	result, err := d.db.Query(input)
 	if err != nil {
@@ -156,14 +145,17 @@ func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error)
 	// pk := utils.GetPartitionKey(utils.SERVICE, name)
 
 	input := &dynamodb.QueryInput{
+		TableName:              aws.String(d.tableName.MDSTable),
+		IndexName:              aws.String("uuid-index"),
+		KeyConditionExpression: aws.String("#key = :value"),
+		ExpressionAttributeNames: map[string]*string{
+			"#key": aws.String("uuid"),
+		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":uuid": {
+			":value": {
 				S: aws.String(uuid),
 			},
 		},
-		KeyConditionExpression: aws.String("uuid = :uuid"),
-		TableName:              aws.String(d.tableName.MDSTable),
-		IndexName:              aws.String("facility-code-index"),
 	}
 
 	result, err := d.db.Query(input)
@@ -183,12 +175,16 @@ func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error)
 	return models.ServiceResponse{}, nil
 }
 
-func (d *Database) UpdateService(updatedService models.ServiceRequest) error {
+func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceName string) error {
 
 	uuid := updatedService.ServiceUUID
 	oldService, err := d.GetServiceByUUID(uuid)
 	if err != nil {
 		return err
+	}
+
+	if oldService.ServiceName == "" {
+		return errors.New("service not found")
 	}
 
 	oldServiceName := utils.GetRangeKey(utils.SERVICE, oldService.ServiceName, blank)
@@ -261,6 +257,8 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 	if err != nil {
 		return err
 	}
+
+	av = utils.NilToEmptySlice(av)
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -369,14 +367,17 @@ func (d *Database) GetCompanyByUUID(uuid string) (models.CompanyResponse, error)
 	companies := []models.CompanyResponse{}
 
 	input := &dynamodb.QueryInput{
+		TableName:              aws.String(d.tableName.MDSTable),
+		IndexName:              aws.String("uuid-index"),
+		KeyConditionExpression: aws.String("#key = :value"),
+		ExpressionAttributeNames: map[string]*string{
+			"#key": aws.String("uuid"),
+		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":uuid": {
+			":value": {
 				S: aws.String(uuid),
 			},
 		},
-		KeyConditionExpression: aws.String("uuid = :uuid"),
-		TableName:              aws.String(d.tableName.MDSTable),
-		IndexName:              aws.String("facility-code-index"),
 	}
 
 	result, err := d.db.Query(input)
@@ -396,7 +397,7 @@ func (d *Database) GetCompanyByUUID(uuid string) (models.CompanyResponse, error)
 	return models.CompanyResponse{}, nil
 }
 
-func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest) error {
+func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyName string) error {
 
 	uuid := updatedCompany.CompanyUUID
 	oldCompany, err := d.GetCompanyByUUID(uuid)

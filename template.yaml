@@ -152,7 +152,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/services/{service_id}
+            Path: /api/v1/services/{service_name}
             Method: GET
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -171,7 +171,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/services/{service_id}
+            Path: /api/v1/services/{service_name}
             Method: PUT
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -190,7 +190,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/services/{service_id}
+            Path: /api/v1/services/{service_name}
             Method: DELETE
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -248,7 +248,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/companies/{company_id}
+            Path: /api/v1/companies/{company_name}
             Method: GET
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -267,7 +267,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/companies/{company_id}
+            Path: /api/v1/companies/{company_name}
             Method: PUT
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -286,7 +286,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/companies/{company_id}
+            Path: /api/v1/companies/{company_name}
             Method: DELETE
             RestApiId: !Ref AutoTaggingApi
       Environment:

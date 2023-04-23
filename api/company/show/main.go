@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/auto-tagging-mds/utils"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -41,26 +42,30 @@ func initSvc() (*companySvc, error) {
 	}, nil
 }
 
-func (sc *companySvc) serviceShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (sc *companySvc) companyShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	// get query parameter
-	serviceID, ok := request.QueryStringParameters["service_id"]
+	// get path parameter
+	companyName, ok := request.PathParameters["company_name"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
-	service, err := sc.db.GetCompany(serviceID)
+	company, err := sc.db.GetCompany(companyName)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusOK, service)
+	if company.CompanyName == "" {
+		return u.ApiResponse(http.StatusNotFound, utils.EmptyStruct{})
+	}
+
+	return u.ApiResponse(http.StatusOK, company)
 }
 
 func (sc *companySvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceShow(ctx, request)
+	events, err := sc.companyShow(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

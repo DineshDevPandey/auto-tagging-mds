@@ -7,6 +7,7 @@ import (
 
 	"github.com/auto-tagging-mds/database/models"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
 )
 
@@ -61,6 +62,10 @@ func GetRangeKeyName() string {
 
 type EmptyStruct struct{}
 
+type MissingParameter struct {
+	ErrorMsg string `json:"error,omitempty"`
+}
+
 type ErrorBody struct {
 	ErrorMsg *string `json:"error,omitempty" dynamo:"error"`
 }
@@ -112,4 +117,10 @@ func DateString(t string) string {
 	}
 
 	return time.Now().In(loc).Format("2006-01-02 15:04:05")
+}
+
+func NilToEmptySlice(av map[string]*dynamodb.AttributeValue) map[string]*dynamodb.AttributeValue {
+	empty := []*dynamodb.AttributeValue{}
+	av["category"] = &dynamodb.AttributeValue{L: empty}
+	return av
 }

@@ -45,13 +45,18 @@ func initSvc() (*serviceUpdateSvc, error) {
 func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var svc m.ServiceRequest
 
+	serviceName, ok := request.PathParameters["service_name"]
+	if ok != true {
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service_name"})
+	}
+
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	err := sc.db.UpdateService(svc)
+	err := sc.db.UpdateService(svc, serviceName)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

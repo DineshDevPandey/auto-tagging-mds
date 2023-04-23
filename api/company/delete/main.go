@@ -44,12 +44,12 @@ func initSvc() (*companySvc, error) {
 func (sc *companySvc) serviceDelete(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// get query parameter
-	companyID, ok := request.QueryStringParameters["company_id"]
+	companyName, ok := request.PathParameters["company_name"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
-	err := sc.db.DeleteService(companyID)
+	err := sc.db.DeleteService(companyName)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
