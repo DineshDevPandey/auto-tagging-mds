@@ -48,7 +48,8 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		service.ServiceUUID = utils.GetUUID()
 		datetime := utils.DateString("datetime")
 		service.CreatedAt, service.UpdatedAt = datetime, datetime
-		service.PK = utils.GetPartitionKey(utils.SERVICE, service.ServiceName, blank)
+		service.PK = utils.GetPartitionKey(utils.SERVICE)
+		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank)
 	}
 
 	fmt.Println("2CreateService : service.PK : ", service.PK)
@@ -82,9 +83,10 @@ func (d *Database) GetAllServices() ([]models.ServiceResponse, error) {
 
 	services := []models.ServiceResponse{}
 	pkName := utils.GetPartitionKeyName()
-	pkPrefix := utils.GetPartitionKey(utils.SERVICE, blank, blank)
+	pkPrefix := utils.GetPartitionKey(utils.SERVICE)
 
-	keyCond := expression.Key(pkName).BeginsWith(pkPrefix)
+	keyCond := expression.Key(pkName).Equal(expression.Value(pkPrefix))
+	// keyCond = expression.KeyAnd(expression.Key(pkName).Equal(expression.Value(pkPrefix)), expression.Key("use_date").Equal(expression.Value(checkIN)))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
@@ -97,6 +99,8 @@ func (d *Database) GetAllServices() ([]models.ServiceResponse, error) {
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 	}
+
+	fmt.Println("-------------- input : ", input)
 
 	result, err := d.db.Query(input)
 	if err != nil {
@@ -115,12 +119,18 @@ func (d *Database) GetService(name string) (models.ServiceResponse, error) {
 
 	service := models.ServiceResponse{}
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.SERVICE, name, blank)
+	pk := utils.GetPartitionKey(utils.SERVICE)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.SERVICE, name, blank)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),
@@ -181,8 +191,8 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest) error {
 		return err
 	}
 
-	oldServiceName := utils.GetPartitionKey(utils.SERVICE, oldService.ServiceName, blank)
-	newServiceName := utils.GetPartitionKey(utils.SERVICE, updatedService.ServiceName, blank)
+	oldServiceName := utils.GetRangeKey(utils.SERVICE, oldService.ServiceName, blank)
+	newServiceName := utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank)
 
 	// if service name is changed, delete old entry and create new one
 	if oldServiceName != newServiceName {
@@ -195,7 +205,8 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest) error {
 	updatedService.CreatedAt = oldService.CreatedAt
 	// new updated at
 	updatedService.UpdatedAt = utils.DateString("datetime")
-	updatedService.PK = utils.GetPartitionKey(utils.SERVICE, updatedService.ServiceName, blank)
+	updatedService.PK = utils.GetPartitionKey(utils.SERVICE)
+	updatedService.SK = utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank)
 	_, err = d.CreateService(updatedService)
 	if err != nil {
 		// TODO: restore old entry in case of error
@@ -208,12 +219,18 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest) error {
 func (d *Database) DeleteService(name string) error {
 
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.SERVICE, name, blank)
+	pk := utils.GetPartitionKey(utils.SERVICE)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.SERVICE, name, blank)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),
@@ -236,7 +253,8 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 		company.CompanyUUID = utils.GetUUID()
 		datetime := utils.DateString("datetime")
 		company.CreatedAt, company.UpdatedAt = datetime, datetime
-		company.PK = utils.GetPartitionKey(utils.COMPANY, company.CompanyName, blank)
+		company.PK = utils.GetPartitionKey(utils.COMPANY)
+		company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank)
 	}
 
 	av, err := dynamodbattribute.MarshalMap(company)
@@ -261,9 +279,9 @@ func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 
 	companies := []models.CompanyResponse{}
 	pkName := utils.GetPartitionKeyName()
-	pkPrefix := utils.GetPartitionKey(utils.COMPANY, blank, blank)
+	pkPrefix := utils.GetPartitionKey(utils.COMPANY)
 
-	keyCond := expression.Key(pkName).BeginsWith(pkPrefix)
+	keyCond := expression.Key(pkName).Equal(expression.Value(pkPrefix))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
@@ -306,12 +324,18 @@ func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 
 	company := models.CompanyResponse{}
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.COMPANY, name, blank)
+	pk := utils.GetPartitionKey(utils.COMPANY)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.COMPANY, name, blank)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),
@@ -380,8 +404,8 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest) error {
 		return err
 	}
 
-	oldCompanyName := utils.GetPartitionKey(utils.COMPANY, oldCompany.CompanyName, blank)
-	newCompanyName := utils.GetPartitionKey(utils.COMPANY, updatedCompany.CompanyName, blank)
+	oldCompanyName := utils.GetRangeKey(utils.COMPANY, oldCompany.CompanyName, blank)
+	newCompanyName := utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank)
 
 	// if company name is changed, delete old entry and create new one
 	if oldCompanyName != newCompanyName {
@@ -394,7 +418,8 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest) error {
 	updatedCompany.CreatedAt = oldCompany.CreatedAt
 	// new updated at
 	updatedCompany.UpdatedAt = utils.DateString("datetime")
-	updatedCompany.PK = utils.GetPartitionKey(utils.COMPANY, updatedCompany.CompanyName, blank)
+	updatedCompany.PK = utils.GetPartitionKey(utils.COMPANY)
+	updatedCompany.SK = utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank)
 	err = d.CreateCompany(updatedCompany)
 	if err != nil {
 		// TODO: restore old entry in case of error
@@ -407,12 +432,18 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest) error {
 func (d *Database) DeleteCompany(name string) error {
 
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.COMPANY, name, blank)
+	pk := utils.GetPartitionKey(utils.COMPANY)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.COMPANY, name, blank)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),
@@ -436,7 +467,8 @@ func (d *Database) CreateTag(tag models.TagCreateRequest) error {
 
 	datetime := utils.DateString("datetime")
 	tag.CreatedAt, tag.UpdatedAt = datetime, datetime
-	tag.PK = utils.GetPartitionKey(utils.TAG, tag.Key, tag.Value)
+	tag.PK = utils.GetPartitionKey(utils.TAG)
+	tag.SK = utils.GetRangeKey(utils.TAG, tag.Key, tag.Value)
 
 	av, err := dynamodbattribute.MarshalMap(tag)
 	if err != nil {
@@ -462,7 +494,7 @@ func (d *Database) GetAllTags() ([]models.TagListResponse, error) {
 	tagList := make([]models.TagListResponse, 0)
 
 	pkName := utils.GetPartitionKeyName()
-	pkPrefix := utils.GetPartitionKey(utils.TAG, blank, blank)
+	pkPrefix := utils.GetPartitionKey(utils.TAG)
 
 	keyCond := expression.Key(pkName).BeginsWith(pkPrefix)
 
@@ -512,12 +544,18 @@ func createTagResponse(tags []models.TagResponse, tagList []models.TagListRespon
 func (d *Database) DeleteTag(key string, value string) error {
 
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.TAG, key, value)
+	pk := utils.GetPartitionKey(utils.TAG)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.TAG, key, value)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),
@@ -537,12 +575,18 @@ func (d *Database) GetTag(key string) (models.TagListResponse, error) {
 	dummy := models.TagListResponse{}
 
 	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.TAG, key, blank)
+	pk := utils.GetPartitionKey(utils.TAG)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.TAG, key, blank)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
 				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
 			},
 		},
 		TableName: aws.String(d.tableName.MDSTable),

@@ -83,13 +83,17 @@ Resources:
       AttributeDefinitions:
       - AttributeName: PK
         AttributeType: S
+      - AttributeName: SK
+        AttributeType: S
       - AttributeName: uuid
         AttributeType: S
       KeySchema:
       - AttributeName: PK
         KeyType: HASH
+      - AttributeName: SK
+        KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
-      TableName:  at_msd-prod
+      TableName:  at_mds-prod
       GlobalSecondaryIndexes:
       - IndexName: uuid-index
         KeySchema:

@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/auto-tagging-mds/database/models"
@@ -18,29 +17,46 @@ const (
 	RULE
 )
 
-func GetPartitionKey(entity int, name string, value string) string {
+func GetPartitionKey(entity int) string {
 	partitionKey := ""
-	fmt.Println("GetPartitionKey : entity : ", entity)
 	switch entity {
 	case SERVICE:
-		partitionKey = "SR#" + name
+		partitionKey = "SR"
 	case COMPANY:
-		partitionKey = "CM#" + name
+		partitionKey = "CM"
+	case TAG:
+		partitionKey = "TG"
+	case RULE:
+		partitionKey = "RL"
+	}
+	return partitionKey
+}
+
+func GetRangeKey(entity int, name string, value string) string {
+	rangeKey := ""
+	switch entity {
+	case SERVICE:
+		rangeKey = "SR#" + name
+	case COMPANY:
+		rangeKey = "CM#" + name
 	case TAG:
 		if value == "" {
-			partitionKey = "TG#" + name
+			rangeKey = "TG#" + name
 		} else {
-			partitionKey = "TG#" + name + "#" + value
+			rangeKey = "TG#" + name + "#" + value
 		}
 	case RULE:
-		partitionKey = "RL#" + name
+		rangeKey = "RL#" + name
 	}
-	fmt.Println("GetPartitionKey : partitionKey : ", partitionKey)
-	return partitionKey
+	return rangeKey
 }
 
 func GetPartitionKeyName() string {
 	return "PK"
+}
+
+func GetRangeKeyName() string {
+	return "SK"
 }
 
 type EmptyStruct struct{}
@@ -67,7 +83,8 @@ func ApiResponse(status int, body interface{}) (events.APIGatewayProxyResponse, 
 
 func InitTablesName() models.Tables {
 	t := models.Tables{}
-	t.MDSTable = os.Getenv("TABLE_NAME")
+	t.MDSTable = "at_mds-prod"
+	// t.MDSTable = os.Getenv("TABLE_NAME")
 
 	return t
 }
