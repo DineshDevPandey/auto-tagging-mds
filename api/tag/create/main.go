@@ -51,14 +51,14 @@ func (sc *tagSvc) tagCreate(ctx context.Context, request events.APIGatewayProxyR
 		})
 	}
 
-	err := sc.db.CreateTag(svc)
+	tag, err := sc.db.CreateTag(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, svc)
+	return u.ApiResponse(http.StatusCreated, tag)
 }
 
 func (sc *tagSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

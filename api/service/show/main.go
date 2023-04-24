@@ -47,7 +47,7 @@ func (sc *serviceShowSvc) serviceShow(ctx context.Context, request events.APIGat
 	// get path parameter
 	serviceName, ok := request.PathParameters["service_name"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service_name"})
+		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : service_name"})
 	}
 
 	service, err := sc.db.GetService(serviceName)

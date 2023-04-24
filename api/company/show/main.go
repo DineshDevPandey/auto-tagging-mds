@@ -47,7 +47,7 @@ func (sc *companySvc) companyShow(ctx context.Context, request events.APIGateway
 	// get path parameter
 	companyName, ok := request.PathParameters["company_name"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
+		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
 	company, err := sc.db.GetCompany(companyName)

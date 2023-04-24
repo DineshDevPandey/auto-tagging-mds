@@ -3,6 +3,11 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: >
   auto-tagging-with-mds
 
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+
 Parameters:
   Version:
     Type: String
@@ -18,65 +23,7 @@ Resources:
         AllowMethods: "'DELETE,GET,OPTIONS,POST,PUT'"
         AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"  
-      # GatewayResponses:
-      #   UNAUTHORIZED:
-      #     ResponseParameters:
-      #       Headers:
-      #         Access-Control-Allow-Origin: "'*'"
-      #         Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-      #         Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
-      # Auth:
-      #   Authorizers:
-      #     CognitoAuthorizer:
-      #       UserPoolArn: !GetAtt "ATUserPool.Arn"  
-
-#   GatewayResponseDefaultUnauthorized:
-#     Type: AWS::ApiGateway::GatewayResponse
-#     Properties:
-#       ResponseParameters:
-#         gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-#         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-#         gatewayresponse.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
-#       ResponseType: UNAUTHORIZED
-#       StatusCode: "401"
-#       RestApiId: !Ref AutoTaggingApi
-
-
-
-# # Cognito ##
-#   ATUserPool:
-#     Type: AWS::Cognito::UserPool
-#     Properties:
-#       AdminCreateUserConfig:
-#         AllowAdminCreateUserOnly: false
-#       UserPoolName: AutoTagging-prod  
-#       UsernameAttributes:
-#       - email
-#       AutoVerifiedAttributes:
-#       - email
-#       Policies:
-#         PasswordPolicy:
-#           MinimumLength: 6
-#           RequireLowercase: true
-#           RequireNumbers: false
-#           RequireSymbols: true
-#           RequireUppercase: true
-
-#   UserPoolClient:
-#     Type: AWS::Cognito::UserPoolClient
-#     Properties:
-#       UserPoolId: !Ref ATUserPool
-#       GenerateSecret: false
-#       ExplicitAuthFlows:
-#       - USER_PASSWORD_AUTH
-
-#   # check if it is requiered, auto confirm is better
-  
-
-
-
-#####################################
-
+   
   MDSTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -197,7 +144,6 @@ Resources:
         Variables:
           TABLE_NAME: !Ref MDSTable
      
-############################################
   CompanyCreateFunction:
     Type: AWS::Serverless::Function 
     Properties:
@@ -293,8 +239,6 @@ Resources:
         Variables:
           TABLE_NAME: !Ref MDSTable
 
-############################################
-
   TagCreateFunction:
     Type: AWS::Serverless::Function 
     Properties:
@@ -352,25 +296,6 @@ Resources:
         Variables:
           TABLE_NAME: !Ref MDSTable
 
-  # TagUpdateFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/tag/update
-  #     Handler: update
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBFullAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/tags/{tag_id}
-  #           Method: PUT
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable
-
   TagDeleteFunction:
     Type: AWS::Serverless::Function 
     Properties:
@@ -383,7 +308,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/tags/{tag_key}/value/{tag_value}
+            Path: /api/v1/tags/{tag_key}/{tag_value}
             Method: DELETE
             RestApiId: !Ref AutoTaggingApi
       Environment:

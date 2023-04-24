@@ -46,12 +46,12 @@ func (sc *tagSvc) tagDelete(ctx context.Context, request events.APIGatewayProxyR
 	// get query parameter
 	key, ok := request.PathParameters["tag_key"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusBadRequest, u.EmptyStruct{})
 	}
 
-	value, ok := request.QueryStringParameters["tag_value"]
+	value, ok := request.PathParameters["tag_value"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusBadRequest, u.EmptyStruct{})
 	}
 
 	err := sc.db.DeleteTag(key, value)

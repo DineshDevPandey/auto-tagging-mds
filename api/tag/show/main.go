@@ -44,10 +44,10 @@ func initSvc() (*tagSvc, error) {
 
 func (sc *tagSvc) tagShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	// get query parameter
+	// get path parameter
 	key, ok := request.PathParameters["tag_key"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : tag key"})
 	}
 
 	tag, err := sc.db.GetTag(key)

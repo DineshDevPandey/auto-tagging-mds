@@ -65,8 +65,9 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 	if err != nil {
 		return service, err
 	}
-
-	av = utils.NilToEmptySlice(av, "category")
+	if len(service.Category) == 0 {
+		av = utils.NilToEmptySlice(av, "category")
+	}
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -148,7 +149,7 @@ func (d *Database) GetService(name string) (models.ServiceResponse, error) {
 	return service, nil
 }
 
-func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error) {
+func (d *Database) GetServiceByUUID(uuid string, projection *string) (models.ServiceResponse, error) {
 
 	services := []models.ServiceResponse{}
 	// pkName := utils.GetPartitionKeyName(utils.SERVICE)
@@ -158,6 +159,7 @@ func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error)
 		TableName:              aws.String(d.tableName.MDSTable),
 		IndexName:              aws.String("uuid-index"),
 		KeyConditionExpression: aws.String("#key = :value"),
+		ProjectionExpression:   projection,
 		ExpressionAttributeNames: map[string]*string{
 			"#key": aws.String("uuid"),
 		},
@@ -187,7 +189,7 @@ func (d *Database) GetServiceByUUID(uuid string) (models.ServiceResponse, error)
 
 func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUUID string) error {
 
-	oldService, err := d.GetServiceByUUID(serviceUUID)
+	oldService, err := d.GetServiceByUUID(serviceUUID, nil)
 	if err != nil {
 		return err
 	}
@@ -277,7 +279,9 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 		return err
 	}
 
-	av = utils.NilToEmptySlice(av, "service_list")
+	if len(company.ServiceList) == 0 {
+		av = utils.NilToEmptySlice(av, "service_list")
+	}
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -322,12 +326,14 @@ func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 		return companies, err
 	}
 
+	projection := aws.String("service_name")
 	// get latest service name
 	for cindex, company := range companies {
 		for sindex, srv := range company.ServiceList {
 			if srv.ServiceUUID != "" {
-				service, err := d.GetServiceByUUID(srv.ServiceUUID)
+				service, err := d.GetServiceByUUID(srv.ServiceUUID, projection)
 				if err == nil {
+					companies[cindex].ServiceList[sindex].ServiceUUID = srv.ServiceUUID
 					companies[cindex].ServiceList[sindex].ServiceName = service.ServiceName
 				}
 			}
@@ -368,11 +374,13 @@ func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 		return company, err
 	}
 
+	projection := aws.String("service_name")
 	// get latest service name
 	for sindex, srv := range company.ServiceList {
 		if srv.ServiceUUID != "" {
-			service, err := d.GetServiceByUUID(srv.ServiceUUID)
+			service, err := d.GetServiceByUUID(srv.ServiceUUID, projection)
 			if err == nil {
+				company.ServiceList[sindex].ServiceUUID = srv.ServiceUUID
 				company.ServiceList[sindex].ServiceName = service.ServiceName
 			}
 		}
@@ -486,7 +494,17 @@ func (d *Database) DeleteCompany(name string) error {
 // TG#Keyword#value1
 // TG#Keyword#value2
 // TG#Keyword#value3
-func (d *Database) CreateTag(tag models.TagCreateRequest) error {
+func (d *Database) CreateTag(tag models.TagCreateRequest) (models.TagCreateRequest, error) {
+
+	// check if the service already exists
+	existTag, err := d.GetTag(tag.Key)
+	if err != nil {
+		return tag, err
+	}
+
+	if existTag.Key != "" {
+		return tag, errors.New("Tag already exist")
+	}
 
 	datetime := utils.DateString("datetime")
 	tag.CreatedAt, tag.UpdatedAt = datetime, datetime
@@ -495,7 +513,7 @@ func (d *Database) CreateTag(tag models.TagCreateRequest) error {
 
 	av, err := dynamodbattribute.MarshalMap(tag)
 	if err != nil {
-		return err
+		return tag, err
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -505,10 +523,10 @@ func (d *Database) CreateTag(tag models.TagCreateRequest) error {
 
 	_, err = d.db.PutItem(input)
 	if err != nil {
-		return err
+		return tag, err
 	}
 
-	return nil
+	return tag, nil
 }
 
 func (d *Database) GetAllTags() ([]models.TagListResponse, error) {
@@ -519,7 +537,7 @@ func (d *Database) GetAllTags() ([]models.TagListResponse, error) {
 	pkName := utils.GetPartitionKeyName()
 	pkPrefix := utils.GetPartitionKey(utils.TAG)
 
-	keyCond := expression.Key(pkName).BeginsWith(pkPrefix)
+	keyCond := expression.Key(pkName).Equal(expression.Value(pkPrefix))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
@@ -548,15 +566,22 @@ func (d *Database) GetAllTags() ([]models.TagListResponse, error) {
 
 func createTagResponse(tags []models.TagResponse, tagList []models.TagListResponse) []models.TagListResponse {
 	tagMap := make(map[string][]string, 0)
+	createdAt := ""
+	updatedAt := ""
 
 	for _, tag := range tags {
 		tagMap[tag.Key] = append(tagMap[tag.Key], tag.Value)
+		// TODO: create logic to get oldest created_at and latest updated_at
+		createdAt = tag.CreatedAt
+		updatedAt = tag.UpdatedAt
 	}
 
 	for key, value := range tagMap {
 		temp := models.TagListResponse{
-			Key:    key,
-			Values: value,
+			Key:       key,
+			Values:    value,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
 		}
 		tagList = append(tagList, temp)
 	}
@@ -602,25 +627,27 @@ func (d *Database) GetTag(key string) (models.TagListResponse, error) {
 
 	skName := utils.GetRangeKeyName()
 	sk := utils.GetRangeKey(utils.TAG, key, blank)
+	keyCond := expression.KeyAnd(expression.Key(pkName).Equal(expression.Value(pk)), expression.Key(skName).BeginsWith(sk))
 
-	input := &dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			pkName: {
-				S: aws.String(pk),
-			},
-			skName: {
-				S: aws.String(sk),
-			},
-		},
-		TableName: aws.String(d.tableName.MDSTable),
-	}
-
-	result, err := d.db.GetItem(input)
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return dummy, err
 	}
 
-	err = dynamodbattribute.UnmarshalMap(result.Item, &tags)
+	input := &dynamodb.QueryInput{
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(d.tableName.MDSTable),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+	}
+
+	result, err := d.db.Query(input)
+	if err != nil {
+		return dummy, err
+	}
+
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &tags)
 	if err != nil {
 		return dummy, err
 	}
