@@ -28,7 +28,7 @@ build:
 	GOOS=linux GOARCH=amd64 $(MAKE) rule_delete
 	GOOS=linux GOARCH=amd64 $(MAKE) rule_create
 
-	GOOS=linux GOARCH=amd64 $(MAKE) service_stream
+	GOOS=linux GOARCH=amd64 $(MAKE) service_streams
 
 # service
 service_index: ./api/service/index/main.go
@@ -94,5 +94,5 @@ rule_update: ./api/rule/update/main.go
 rule_delete: ./api/rule/delete/main.go
 	go build -o ./api/rule/delete/delete ./api/rule/delete
 
-service_stream: ./stream/service/main.go
-	go build -o ./stream/service/service ./stream/service
+service_streams: ./streams/service/main.go
+	go build -o ./streams/service/service ./streams/service
