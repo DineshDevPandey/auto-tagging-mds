@@ -50,7 +50,7 @@ func (sc *tagSvc) tagShow(ctx context.Context, request events.APIGatewayProxyReq
 		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : tag key"})
 	}
 
-	tag, err := sc.db.GetTag(key)
+	tag, err := sc.db.GetTag(key, "")
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

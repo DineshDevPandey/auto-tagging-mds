@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/auto-tagging-mds/database/models"
@@ -497,7 +498,7 @@ func (d *Database) DeleteCompany(name string) error {
 func (d *Database) CreateTag(tag models.TagCreateRequest) (models.TagCreateRequest, error) {
 
 	// check if the service already exists
-	existTag, err := d.GetTag(tag.Key)
+	existTag, err := d.GetTag(tag.Key, tag.Value)
 	if err != nil {
 		return tag, err
 	}
@@ -616,7 +617,7 @@ func (d *Database) DeleteTag(key string, value string) error {
 	return nil
 }
 
-func (d *Database) GetTag(key string) (models.TagListResponse, error) {
+func (d *Database) GetTag(key string, value string) (models.TagListResponse, error) {
 
 	tags := []models.TagResponse{}
 	resultTag := []models.TagListResponse{}
@@ -626,7 +627,13 @@ func (d *Database) GetTag(key string) (models.TagListResponse, error) {
 	pk := utils.GetPartitionKey(utils.TAG)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.TAG, key, blank, blank, blank)
+	var sk string
+	if value == "" {
+		sk = utils.GetRangeKey(utils.TAG, key, blank, blank, blank)
+	} else {
+		sk = utils.GetRangeKey(utils.TAG, key, value, blank, blank)
+	}
+
 	keyCond := expression.KeyAnd(expression.Key(pkName).Equal(expression.Value(pk)), expression.Key(skName).BeginsWith(sk))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
@@ -884,7 +891,10 @@ func (d *Database) GetRuleByUUID(uuid string) (models.RuleResponse, error) {
 }
 
 func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []models.RuleResponse) error {
-	for _, rule := range rules {
+
+	for i, rule := range rules {
+		fmt.Printf("rule number : %v : key : %v : value : %v\n", i, rule.TagKey, rule.TagValue)
+
 		updateDb := false
 		switch rule.Operation {
 		case "CONTAIN":
@@ -898,7 +908,9 @@ func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []m
 		if updateDb {
 			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
 			service.Category = utils.AppendTag(service.Category, cat)
+			fmt.Printf("service.Category : %v\n", service.Category)
 			d.CreateService(service)
+			fmt.Println("service updated")
 		}
 	}
 	return nil

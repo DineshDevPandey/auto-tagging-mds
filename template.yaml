@@ -120,7 +120,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/services/{service_name}/update # here service_name is service_uuid
+            Path: /api/v1/services/{service_name} # here service_name is service_uuid
             Method: PUT
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -410,6 +410,26 @@ Resources:
             Path: /api/v1/rules/{rule_uuid}
             Method: DELETE
             RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable   
+
+  ServiceStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: stream/service
+      Handler: service
+      FunctionName: ServiceStreamProcessor
+      Runtime: go1.x
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaDynamoDBExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        DynamoDBStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt MDSTable.StreamArn
       Environment:
         Variables:
           TABLE_NAME: !Ref MDSTable   

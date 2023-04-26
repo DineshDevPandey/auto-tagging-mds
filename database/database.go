@@ -18,7 +18,7 @@ type Database interface {
 	CreateTag(models.TagCreateRequest) (models.TagCreateRequest, error)
 	GetAllTags() ([]models.TagListResponse, error)
 	DeleteTag(key string, value string) error
-	GetTag(key string) (models.TagListResponse, error)
+	GetTag(key string,  value string) (models.TagListResponse, error)
 
 	CreateRule(models.RuleRequest) error
 	GetAllRules() ([]models.RuleResponse, error)

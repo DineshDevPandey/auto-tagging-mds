@@ -145,6 +145,7 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bool {
 
 	mdValue := getMetaDataFieldValue(rule.MetadataField, service)
+	fmt.Println("getMetaDataFieldValue : ", mdValue)
 	// // GREATER/LESSER/EQUAL/GREATER_THAN_EQUAL/LESSER_THAN_EQUAL
 	// TODO : write logic to match multiple keywords
 	if strings.ToLower(rule.MetadataField) == LIKE {
@@ -174,6 +175,7 @@ func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bo
 	} else {
 		keyword := strings.ToLower(rule.Keyword)
 		if strings.Contains(mdValue, keyword) {
+			fmt.Printf("strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
 			return true
 		}
 	}
