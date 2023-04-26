@@ -46,7 +46,7 @@ func (sc *ruleSvc) ruleDelete(ctx context.Context, request events.APIGatewayProx
 	// get query parameter
 	ruleUUID, ok := request.PathParameters["rule_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : rule uuid"})
 	}
 
 	err := sc.db.DeleteRule(ruleUUID)

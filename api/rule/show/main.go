@@ -47,7 +47,7 @@ func (sc *ruleSvc) ruleShow(ctx context.Context, request events.APIGatewayProxyR
 	// get path parameter
 	ruleUUID, ok := request.PathParameters["rule_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
+		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : rule uuid"})
 	}
 
 	rule, err := sc.db.GetRuleByUUID(ruleUUID)

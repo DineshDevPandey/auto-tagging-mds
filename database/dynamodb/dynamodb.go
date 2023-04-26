@@ -669,26 +669,25 @@ func (d *Database) GetTag(key string, value string) (models.TagListResponse, err
 
 // ################################################################################################# Rule
 
-// complete it
 func (d *Database) CreateRule(rule models.RuleRequest) error {
 
-	// if rule.RuleUUID == "" {
-	// 	// check if companyalready exist
-	// 	existCompany, err := d.GetCompany(company.CompanyName)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+	if rule.RuleUUID == "" {
+		// check if rule already exist
+		existRule, err := d.GetRule(rule.RuleUUID)
+		if err != nil {
+			return err
+		}
 
-	// 	if existCompany.CompanyName != "" {
-	// 		return errors.New("Company already exist")
-	// 	}
+		if existRule.TagKey != "" {
+			return errors.New("Rule already exist")
+		}
 
-	// 	company.CompanyUUID = utils.GetUUID()
-	// 	datetime := utils.DateString("datetime")
-	// 	company.CreatedAt, company.UpdatedAt = datetime, datetime
-	// 	company.PK = utils.GetPartitionKey(utils.COMPANY)
-	// 	company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank, blank, blank)
-	// }
+		rule.RuleUUID = utils.GetUUID()
+		datetime := utils.DateString("datetime")
+		rule.CreatedAt, rule.UpdatedAt = datetime, datetime
+		rule.PK = utils.GetPartitionKey(utils.RULE)
+		rule.SK = utils.GetRangeKey(utils.RULE, rule.TagKey, rule.TagValue, rule.MetadataField, rule.Operation)
+	}
 
 	// check if companyalready exist
 	existRule, err := d.GetRule(rule.RuleUUID)
@@ -704,7 +703,7 @@ func (d *Database) CreateRule(rule models.RuleRequest) error {
 	datetime := utils.DateString("datetime")
 	rule.CreatedAt, rule.UpdatedAt = datetime, datetime
 	rule.PK = utils.GetPartitionKey(utils.RULE)
-	rule.SK = utils.GetRangeKey(utils.RULE, rule.RuleUUID, blank, blank, blank)
+	rule.SK = utils.GetRangeKey(utils.RULE, rule.TagKey, rule.TagValue, rule.MetadataField, rule.Operation)
 
 	av, err := dynamodbattribute.MarshalMap(rule)
 	if err != nil {
@@ -764,31 +763,7 @@ func (d *Database) GetAllRules() ([]models.RuleResponse, error) {
 // complete it
 func (d *Database) GetRule(ruleUUID string) (models.RuleResponse, error) {
 
-	rule := models.RuleResponse{}
-	pkName := utils.GetPartitionKeyName()
-	pk := utils.GetPartitionKey(utils.RULE)
-
-	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.RULE, ruleUUID, blank, blank, blank)
-
-	input := &dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			pkName: {
-				S: aws.String(pk),
-			},
-			skName: {
-				S: aws.String(sk),
-			},
-		},
-		TableName: aws.String(d.tableName.MDSTable),
-	}
-
-	result, err := d.db.GetItem(input)
-	if err != nil {
-		return rule, err
-	}
-
-	err = dynamodbattribute.UnmarshalMap(result.Item, &rule)
+	rule, err := d.GetRuleByUUID(ruleUUID)
 	if err != nil {
 		return rule, err
 	}
