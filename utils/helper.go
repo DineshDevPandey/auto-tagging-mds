@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/auto-tagging-mds/database/models"
@@ -16,6 +18,13 @@ const (
 	COMPANY
 	TAG
 	RULE
+)
+
+const (
+	DESCRIPTION   = "description"
+	LOCATION      = "location"
+	LIKE          = "like"
+	TARGETSEGMENT = "targetsegment"
 )
 
 func GetPartitionKey(entity int) string {
@@ -33,7 +42,7 @@ func GetPartitionKey(entity int) string {
 	return partitionKey
 }
 
-func GetRangeKey(entity int, name string, value string) string {
+func GetRangeKey(entity int, name, value, metadataField, operation string) string {
 	rangeKey := ""
 	switch entity {
 	case SERVICE:
@@ -47,7 +56,7 @@ func GetRangeKey(entity int, name string, value string) string {
 			rangeKey = "TG#" + name + "#" + value
 		}
 	case RULE:
-		rangeKey = "RL#" + name
+		rangeKey = "RL#" + name + "#" + value + "#" + metadataField + "#" + operation
 	}
 	return rangeKey
 }
@@ -123,4 +132,75 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 	empty := []*dynamodb.AttributeValue{}
 	av[field] = &dynamodb.AttributeValue{L: empty}
 	return av
+}
+
+func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bool {
+
+	mdValue := getMetaDataFieldValue(rule.MetadataField, service)
+
+	// TODO : write logic to match multiple keywords
+	if strings.ToLower(rule.MetadataField) == "like" {
+		likeCount, _ := strconv.Atoi(mdValue)
+		switch rule.Operator {
+		case ">":
+			if likeCount > rule.Operand {
+				return true
+			}
+		case "<":
+			if likeCount < rule.Operand {
+				return true
+			}
+		case ">=":
+			if likeCount >= rule.Operand {
+				return true
+			}
+		case "<=":
+			if likeCount <= rule.Operand {
+				return true
+			}
+		case "==":
+			if likeCount == rule.Operand {
+				return true
+			}
+		}
+	} else {
+		keyword := strings.ToLower(rule.Keyword[0])
+		if strings.Contains(mdValue, keyword) {
+			return true
+		}
+	}
+	return false
+}
+
+func getMetaDataFieldValue(md string, service models.ServiceRequest) string {
+	value := ""
+	md = strings.ReplaceAll(strings.ToLower(md), " ", "")
+
+	switch md {
+	case DESCRIPTION:
+		value = service.Description
+	case LOCATION:
+		value = service.Location
+	case LIKE:
+		value = fmt.Sprint(service.Like)
+	case TARGETSEGMENT:
+		value = service.TargetSegment
+	default:
+		return ""
+	}
+
+	return strings.ToLower(value)
+}
+
+func AppendTag(category []models.Category, cat models.Category) []models.Category {
+	isTagPresent := false
+	for _, tag := range category {
+		if tag.Key == cat.Key && tag.Value == cat.Value {
+			isTagPresent = true
+		}
+	}
+	if !isTagPresent {
+		category = append(category, cat)
+	}
+	return category
 }

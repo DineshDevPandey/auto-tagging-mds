@@ -48,6 +48,8 @@ Resources:
           KeyType: HASH
         Projection:
           ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
 
   ServiceCreateFunction:
     Type: AWS::Serverless::Function 
@@ -317,98 +319,98 @@ Resources:
 
 ############################################
 
-  # RuleCreateFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/rule/create
-  #     Handler: create
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBFullAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/rules
-  #           Method: POST
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable
+  RuleCreateFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: api/rule/create
+      Handler: create
+      Runtime: go1.x
+      Tracing: Active 
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        CatchAll:
+          Type: Api 
+          Properties:
+            Path: /api/v1/rules
+            Method: POST
+            RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable
 
-  # RuleIndexFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/rule/index
-  #     Handler: index
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBReadOnlyAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/rules
-  #           Method: GET
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable
+  RuleIndexFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: api/rule/index
+      Handler: index
+      Runtime: go1.x
+      Tracing: Active 
+      Policies: AmazonDynamoDBReadOnlyAccess
+      Events:
+        CatchAll:
+          Type: Api 
+          Properties:
+            Path: /api/v1/rules
+            Method: GET
+            RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable
 
-  # RuleShowFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/rule/show
-  #     Handler: show
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBReadOnlyAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/rules/{rule_id}
-  #           Method: GET
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable
+  RuleShowFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: api/rule/show
+      Handler: show
+      Runtime: go1.x
+      Tracing: Active 
+      Policies: AmazonDynamoDBReadOnlyAccess
+      Events:
+        CatchAll:
+          Type: Api 
+          Properties:
+            Path: /api/v1/rules/{rule_uuid}
+            Method: GET
+            RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable
 
-  # RuleUpdateFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/rule/update
-  #     Handler: update
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBFullAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/rules/{rule_id}
-  #           Method: PUT
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable
+  RuleUpdateFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: api/rule/update
+      Handler: update
+      Runtime: go1.x
+      Tracing: Active 
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        CatchAll:
+          Type: Api 
+          Properties:
+            Path: /api/v1/rules/{rule_uuid}
+            Method: PUT
+            RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable
 
-  # RuleDeleteFunction:
-  #   Type: AWS::Serverless::Function 
-  #   Properties:
-  #     CodeUri: api/rule/delete
-  #     Handler: delete
-  #     Runtime: go1.x
-  #     Tracing: Active 
-  #     Policies: AmazonDynamoDBFullAccess
-  #     Events:
-  #       CatchAll:
-  #         Type: Api 
-  #         Properties:
-  #           Path: /api/v1/rules/{rule_id}
-  #           Method: DELETE
-  #           RestApiId: !Ref AutoTaggingApi
-  #     Environment:
-  #       Variables:
-  #         TABLE_NAME: !Ref MDSTable   
+  RuleDeleteFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: api/rule/delete
+      Handler: delete
+      Runtime: go1.x
+      Tracing: Active 
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        CatchAll:
+          Type: Api 
+          Properties:
+            Path: /api/v1/rules/{rule_uuid}
+            Method: DELETE
+            RestApiId: !Ref AutoTaggingApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MDSTable   
 

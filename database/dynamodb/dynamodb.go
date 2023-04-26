@@ -58,7 +58,7 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		datetime := utils.DateString("datetime")
 		service.CreatedAt, service.UpdatedAt = datetime, datetime
 		service.PK = utils.GetPartitionKey(utils.SERVICE)
-		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank)
+		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank, blank, blank)
 	}
 
 	av, err := dynamodbattribute.MarshalMap(service)
@@ -122,7 +122,7 @@ func (d *Database) GetService(name string) (models.ServiceResponse, error) {
 	pk := utils.GetPartitionKey(utils.SERVICE)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.SERVICE, name, blank)
+	sk := utils.GetRangeKey(utils.SERVICE, name, blank, blank, blank)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -198,8 +198,8 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUU
 		return errors.New("service not found")
 	}
 
-	oldServiceName := utils.GetRangeKey(utils.SERVICE, oldService.ServiceName, blank)
-	newServiceName := utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank)
+	oldServiceName := utils.GetRangeKey(utils.SERVICE, oldService.ServiceName, blank, blank, blank)
+	newServiceName := utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank, blank, blank)
 
 	// if service name is changed, delete old entry and create new one
 	if oldServiceName != newServiceName {
@@ -213,7 +213,7 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUU
 	// new updated at
 	updatedService.UpdatedAt = utils.DateString("datetime")
 	updatedService.PK = utils.GetPartitionKey(utils.SERVICE)
-	updatedService.SK = utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank)
+	updatedService.SK = utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank, blank, blank)
 	_, err = d.CreateService(updatedService)
 	if err != nil {
 		// TODO: restore old entry in case of error
@@ -229,7 +229,7 @@ func (d *Database) DeleteService(name string) error {
 	pk := utils.GetPartitionKey(utils.SERVICE)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.SERVICE, name, blank)
+	sk := utils.GetRangeKey(utils.SERVICE, name, blank, blank, blank)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -271,7 +271,7 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 		datetime := utils.DateString("datetime")
 		company.CreatedAt, company.UpdatedAt = datetime, datetime
 		company.PK = utils.GetPartitionKey(utils.COMPANY)
-		company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank)
+		company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank, blank, blank)
 	}
 
 	av, err := dynamodbattribute.MarshalMap(company)
@@ -350,7 +350,7 @@ func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 	pk := utils.GetPartitionKey(utils.COMPANY)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.COMPANY, name, blank)
+	sk := utils.GetRangeKey(utils.COMPANY, name, blank, blank, blank)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -435,8 +435,8 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyUU
 		return errors.New("company not found")
 	}
 
-	oldCompanyName := utils.GetRangeKey(utils.COMPANY, oldCompany.CompanyName, blank)
-	newCompanyName := utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank)
+	oldCompanyName := utils.GetRangeKey(utils.COMPANY, oldCompany.CompanyName, blank, blank, blank)
+	newCompanyName := utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank, blank, blank)
 
 	// if company name is changed, delete old entry and create new one
 	if oldCompanyName != newCompanyName {
@@ -450,7 +450,7 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyUU
 	// new updated at
 	updatedCompany.UpdatedAt = utils.DateString("datetime")
 	updatedCompany.PK = utils.GetPartitionKey(utils.COMPANY)
-	updatedCompany.SK = utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank)
+	updatedCompany.SK = utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank, blank, blank)
 	err = d.CreateCompany(updatedCompany)
 	if err != nil {
 		// TODO: restore old entry in case of error
@@ -466,7 +466,7 @@ func (d *Database) DeleteCompany(name string) error {
 	pk := utils.GetPartitionKey(utils.COMPANY)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.COMPANY, name, blank)
+	sk := utils.GetRangeKey(utils.COMPANY, name, blank, blank, blank)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -509,7 +509,7 @@ func (d *Database) CreateTag(tag models.TagCreateRequest) (models.TagCreateReque
 	datetime := utils.DateString("datetime")
 	tag.CreatedAt, tag.UpdatedAt = datetime, datetime
 	tag.PK = utils.GetPartitionKey(utils.TAG)
-	tag.SK = utils.GetRangeKey(utils.TAG, tag.Key, tag.Value)
+	tag.SK = utils.GetRangeKey(utils.TAG, tag.Key, tag.Value, blank, blank)
 
 	av, err := dynamodbattribute.MarshalMap(tag)
 	if err != nil {
@@ -595,7 +595,7 @@ func (d *Database) DeleteTag(key string, value string) error {
 	pk := utils.GetPartitionKey(utils.TAG)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.TAG, key, value)
+	sk := utils.GetRangeKey(utils.TAG, key, value, blank, blank)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -626,7 +626,7 @@ func (d *Database) GetTag(key string) (models.TagListResponse, error) {
 	pk := utils.GetPartitionKey(utils.TAG)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.TAG, key, blank)
+	sk := utils.GetRangeKey(utils.TAG, key, blank, blank, blank)
 	keyCond := expression.KeyAnd(expression.Key(pkName).Equal(expression.Value(pk)), expression.Key(skName).BeginsWith(sk))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
@@ -658,4 +658,249 @@ func (d *Database) GetTag(key string) (models.TagListResponse, error) {
 	}
 
 	return dummy, nil
+}
+
+// ################################################################################################# Rule
+
+// complete it
+func (d *Database) CreateRule(rule models.RuleRequest) error {
+
+	// if rule.RuleUUID == "" {
+	// 	// check if companyalready exist
+	// 	existCompany, err := d.GetCompany(company.CompanyName)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	if existCompany.CompanyName != "" {
+	// 		return errors.New("Company already exist")
+	// 	}
+
+	// 	company.CompanyUUID = utils.GetUUID()
+	// 	datetime := utils.DateString("datetime")
+	// 	company.CreatedAt, company.UpdatedAt = datetime, datetime
+	// 	company.PK = utils.GetPartitionKey(utils.COMPANY)
+	// 	company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank, blank, blank)
+	// }
+
+	// check if companyalready exist
+	existRule, err := d.GetRule(rule.RuleUUID)
+	if err != nil {
+		return err
+	}
+
+	if existRule.RuleUUID != "" {
+		return errors.New("Rule already exist")
+	}
+
+	rule.RuleUUID = utils.GetUUID()
+	datetime := utils.DateString("datetime")
+	rule.CreatedAt, rule.UpdatedAt = datetime, datetime
+	rule.PK = utils.GetPartitionKey(utils.RULE)
+	rule.SK = utils.GetRangeKey(utils.RULE, rule.RuleUUID, blank, blank, blank)
+
+	av, err := dynamodbattribute.MarshalMap(rule)
+	if err != nil {
+		return err
+	}
+
+	if len(rule.Keyword) == 0 {
+		av = utils.NilToEmptySlice(av, "keyword")
+	}
+
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String(d.tableName.MDSTable),
+	}
+
+	_, err = d.db.PutItem(input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Database) GetAllRules() ([]models.RuleResponse, error) {
+
+	rules := []models.RuleResponse{}
+	pkName := utils.GetPartitionKeyName()
+	pkPrefix := utils.GetPartitionKey(utils.RULE)
+
+	keyCond := expression.Key(pkName).Equal(expression.Value(pkPrefix))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return rules, err
+	}
+
+	input := &dynamodb.QueryInput{
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(d.tableName.MDSTable),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+	}
+
+	result, err := d.db.Query(input)
+	if err != nil {
+		return rules, err
+	}
+
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &rules)
+	if err != nil {
+		return rules, err
+	}
+
+	return rules, nil
+}
+
+// complete it
+func (d *Database) GetRule(ruleUUID string) (models.RuleResponse, error) {
+
+	rule := models.RuleResponse{}
+	pkName := utils.GetPartitionKeyName()
+	pk := utils.GetPartitionKey(utils.RULE)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.RULE, ruleUUID, blank, blank, blank)
+
+	input := &dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			pkName: {
+				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
+			},
+		},
+		TableName: aws.String(d.tableName.MDSTable),
+	}
+
+	result, err := d.db.GetItem(input)
+	if err != nil {
+		return rule, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(result.Item, &rule)
+	if err != nil {
+		return rule, err
+	}
+
+	return rule, nil
+}
+
+// complete it
+func (d *Database) UpdateRule(updatedRule models.RuleRequest, ruleUUID string) error {
+
+	oldRule, err := d.GetRule(ruleUUID)
+	if err != nil {
+		return err
+	}
+
+	if oldRule.Operation == "" {
+		return errors.New("rule not found")
+	}
+
+	// old created at
+	updatedRule.CreatedAt = oldRule.CreatedAt
+	// new updated at
+	updatedRule.UpdatedAt = utils.DateString("datetime")
+	updatedRule.PK = utils.GetPartitionKey(utils.RULE)
+	updatedRule.SK = utils.GetRangeKey(utils.RULE, updatedRule.RuleUUID, blank, blank, blank)
+	err = d.CreateRule(updatedRule)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Database) DeleteRule(ruleUUID string) error {
+
+	rule, err := d.GetRuleByUUID(ruleUUID)
+	if err != nil {
+		return err
+	}
+
+	pkName := utils.GetPartitionKeyName()
+	pk := utils.GetPartitionKey(utils.RULE)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.RULE, rule.TagKey, rule.TagValue, rule.MetadataField, rule.Operation)
+
+	input := &dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			pkName: {
+				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
+			},
+		},
+		TableName: aws.String(d.tableName.MDSTable),
+	}
+
+	// GetItem from dynamodb table
+	_, err = d.db.DeleteItem(input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Database) GetRuleByUUID(uuid string) (models.RuleResponse, error) {
+
+	rules := []models.RuleResponse{}
+
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(d.tableName.MDSTable),
+		IndexName:              aws.String("uuid-index"),
+		KeyConditionExpression: aws.String("#key = :value"),
+		ExpressionAttributeNames: map[string]*string{
+			"#key": aws.String("uuid"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":value": {
+				S: aws.String(uuid),
+			},
+		},
+	}
+
+	result, err := d.db.Query(input)
+	if err != nil {
+		return models.RuleResponse{}, err
+	}
+
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &rules)
+	if err != nil {
+		return models.RuleResponse{}, err
+	}
+
+	if len(result.Items) > 0 {
+		return rules[0], nil
+	}
+
+	return models.RuleResponse{}, nil
+}
+
+func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []models.RuleResponse) error {
+	for _, rule := range rules {
+		updateDb := false
+		switch rule.Operation {
+		case "CONTAIN":
+			fallthrough
+		case "RELATION":
+			updateDb = utils.IsTagValueFound(service, rule)
+		case "SUBSCRIPTION_COUNT":
+			// TODO: create logic for condition
+
+		}
+
+		if updateDb {
+			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
+			service.Category = utils.AppendTag(service.Category, cat)
+			d.CreateService(service)
+		}
+	}
+	return nil
 }

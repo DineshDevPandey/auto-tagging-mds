@@ -18,14 +18,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type serviceDeleteSvc struct {
+type ruleSvc struct {
 	db            database.Database
 	tableName     m.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceDeleteSvc, error) {
+func initSvc() (*ruleSvc, error) {
 	tablesName := u.InitTablesName()
 
 	var db database.Database
@@ -35,21 +35,21 @@ func initSvc() (*serviceDeleteSvc, error) {
 		return nil, err
 	}
 
-	return &serviceDeleteSvc{
+	return &ruleSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sc *serviceDeleteSvc) serviceDelete(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (sc *ruleSvc) ruleDelete(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// get query parameter
-	serviceID, ok := request.QueryStringParameters["service_id"]
+	ruleUUID, ok := request.PathParameters["rule_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
-	err := sc.db.DeleteService(serviceID)
+	err := sc.db.DeleteRule(ruleUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
@@ -59,8 +59,8 @@ func (sc *serviceDeleteSvc) serviceDelete(ctx context.Context, request events.AP
 	return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
 }
 
-func (sc *serviceDeleteSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceDelete(ctx, request)
+func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	events, err := sc.ruleDelete(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,14 +19,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type serviceCreateSvc struct {
+type ruleSvc struct {
 	db            database.Database
 	tableName     m.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceCreateSvc, error) {
+func initSvc() (*ruleSvc, error) {
 	tablesName := u.InitTablesName()
 
 	var db database.Database
@@ -36,14 +36,14 @@ func initSvc() (*serviceCreateSvc, error) {
 		return nil, err
 	}
 
-	return &serviceCreateSvc{
+	return &ruleSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sc *serviceCreateSvc) serviceCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var svc m.ServiceRequest
+func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var svc m.RuleRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
@@ -51,18 +51,18 @@ func (sc *serviceCreateSvc) serviceCreate(ctx context.Context, request events.AP
 		})
 	}
 
-	err := sc.db.CreateService(svc)
+	err := sc.db.CreateRule(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, "{}")
+	return u.ApiResponse(http.StatusCreated, svc)
 }
 
-func (sc *serviceCreateSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceCreate(ctx, request)
+func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	events, err := sc.ruleCreate(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/auto-tagging-mds/utils"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -18,14 +19,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type serviceShowSvc struct {
+type ruleSvc struct {
 	db            database.Database
 	tableName     m.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceShowSvc, error) {
+func initSvc() (*ruleSvc, error) {
 	tablesName := u.InitTablesName()
 
 	var db database.Database
@@ -35,32 +36,36 @@ func initSvc() (*serviceShowSvc, error) {
 		return nil, err
 	}
 
-	return &serviceShowSvc{
+	return &ruleSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sc *serviceShowSvc) serviceShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (sc *ruleSvc) ruleShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	// get query parameter
-	serviceID, ok := request.QueryStringParameters["service_id"]
+	// get path parameter
+	ruleUUID, ok := request.PathParameters["rule_uuid"]
 	if ok != true {
-		return u.ApiResponse(http.StatusOK, u.EmptyStruct{})
+		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : company_name"})
 	}
 
-	service, err := sc.db.GetService(serviceID)
+	rule, err := sc.db.GetRuleByUUID(ruleUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusOK, service)
+	if rule.RuleUUID == "" {
+		return u.ApiResponse(http.StatusNotFound, utils.EmptyStruct{})
+	}
+
+	return u.ApiResponse(http.StatusOK, rule)
 }
 
-func (sc *serviceShowSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceShow(ctx, request)
+func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	events, err := sc.ruleShow(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,15 +19,14 @@ build:
 
 	GOOS=linux GOARCH=amd64 $(MAKE) tag_index
 	GOOS=linux GOARCH=amd64 $(MAKE) tag_show
-#	GOOS=linux GOARCH=amd64 $(MAKE) tag_update
 	GOOS=linux GOARCH=amd64 $(MAKE) tag_delete
 	GOOS=linux GOARCH=amd64 $(MAKE) tag_create
 
-#	GOOS=linux GOARCH=amd64 $(MAKE) rule_index
-#	GOOS=linux GOARCH=amd64 $(MAKE) rule_show
-#	GOOS=linux GOARCH=amd64 $(MAKE) rule_update
-#	GOOS=linux GOARCH=amd64 $(MAKE) rule_delete
-#	GOOS=linux GOARCH=amd64 $(MAKE) rule_create
+	GOOS=linux GOARCH=amd64 $(MAKE) rule_index
+	GOOS=linux GOARCH=amd64 $(MAKE) rule_show
+	GOOS=linux GOARCH=amd64 $(MAKE) rule_update
+	GOOS=linux GOARCH=amd64 $(MAKE) rule_delete
+	GOOS=linux GOARCH=amd64 $(MAKE) rule_create
 
 # service
 service_index: ./api/service/index/main.go

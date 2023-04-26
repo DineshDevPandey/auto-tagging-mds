@@ -18,14 +18,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type serviceIndexSvc struct {
+type ruleSvc struct {
 	db            database.Database
 	tableName     m.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceIndexSvc, error) {
+func initSvc() (*ruleSvc, error) {
 	tablesName := u.InitTablesName()
 
 	var db database.Database
@@ -35,15 +35,15 @@ func initSvc() (*serviceIndexSvc, error) {
 		return nil, err
 	}
 
-	return &serviceIndexSvc{
+	return &ruleSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sc *serviceIndexSvc) serviceIndex(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (sc *ruleSvc) ruleIndex(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	services, err := sc.db.GetAllServices()
+	services, err := sc.db.GetAllRules()
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
@@ -53,8 +53,8 @@ func (sc *serviceIndexSvc) serviceIndex(ctx context.Context, request events.APIG
 	return u.ApiResponse(http.StatusOK, services)
 }
 
-func (sc *serviceIndexSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceIndex(ctx, request)
+func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	events, err := sc.ruleIndex(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

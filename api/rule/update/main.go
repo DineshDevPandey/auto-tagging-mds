@@ -19,14 +19,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type serviceUpdateSvc struct {
+type ruleSvc struct {
 	db            database.Database
 	tableName     m.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceUpdateSvc, error) {
+func initSvc() (*ruleSvc, error) {
 	tablesName := u.InitTablesName()
 
 	var db database.Database
@@ -36,14 +36,19 @@ func initSvc() (*serviceUpdateSvc, error) {
 		return nil, err
 	}
 
-	return &serviceUpdateSvc{
+	return &ruleSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var svc m.ServiceRequest
+func (sc *ruleSvc) ruleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var svc m.RuleRequest
+
+	ruleUUID, ok := request.PathParameters["rule_uuid"]
+	if ok != true {
+		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : rule uuid"})
+	}
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
@@ -51,18 +56,18 @@ func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.AP
 		})
 	}
 
-	err := sc.db.UpdateService(svc)
+	err := sc.db.UpdateRule(svc, ruleUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, "{}")
+	return u.ApiResponse(http.StatusCreated, svc)
 }
 
-func (sc *serviceUpdateSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	events, err := sc.serviceUpdate(ctx, request)
+func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	events, err := sc.ruleUpdate(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

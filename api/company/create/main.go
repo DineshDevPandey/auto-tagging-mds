@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/go-playground/validator"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -43,6 +44,8 @@ func initSvc() (*companySvc, error) {
 }
 
 func (sc *companySvc) companyCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	validate := validator.New()
 	var svc m.CompanyRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
@@ -51,7 +54,14 @@ func (sc *companySvc) companyCreate(ctx context.Context, request events.APIGatew
 		})
 	}
 
-	err := sc.db.CreateCompany(svc)
+	err := validate.Struct(svc)
+	if err != nil {
+		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
+			ErrorMsg: aws.String(err.Error()),
+		})
+	}
+
+	err = sc.db.CreateCompany(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
