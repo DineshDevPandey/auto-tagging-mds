@@ -430,6 +430,8 @@ Resources:
           Type: DynamoDB
           Properties:
             Stream: !GetAtt MDSTable.StreamArn
+            BatchSize: 1000
+            StartingPosition: LATEST
       Environment:
         Variables:
           TABLE_NAME: !Ref MDSTable   
