@@ -234,7 +234,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/companies/{company_name}
+            Path: /api/v1/companies/{comp_name}
             Method: DELETE
             RestApiId: !Ref AutoTaggingApi
       Environment:
