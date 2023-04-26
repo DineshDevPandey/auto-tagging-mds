@@ -164,7 +164,7 @@ func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bo
 			}
 		}
 	} else {
-		keyword := strings.ToLower(rule.Keyword[0])
+		keyword := strings.ToLower(rule.Keyword)
 		if strings.Contains(mdValue, keyword) {
 			return true
 		}
