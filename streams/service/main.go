@@ -51,32 +51,27 @@ func (sr *serviceSvc) inventory(ctx context.Context, event models.DynamoDBEvent)
 
 		fmt.Printf("Service : current %v total : %v\n", ii, len(event.Records))
 		change := record.Change
-		newImage := change.NewImage // now of type: map[string]*dynamodb.AttributeValue
+		newImage := change.NewImage 
 
 		var oldService models.ServiceRequest
 		var newService models.ServiceRequest
 
 		err := dynamodbattribute.UnmarshalMap(newImage, &newService)
 		if err != nil {
-			fmt.Println("UnmarshalMap error 1 :", err)
+			fmt.Println("UnmarshalMap error :", err)
 			return err
 		}
 
 		switch record.EventName {
-		case "REMOVE":
-			fmt.Printf("Service removed - service Name : %v service uuid : %v\n")
-
 		case "MODIFY":
 			err := dynamodbattribute.UnmarshalMap(newImage, &oldService)
 			if err != nil {
 				fmt.Println("UnmarshalMap error :", err)
 				return err
 			}
-
 			if oldService.Description == newService.Description {
 				return nil
 			}
-
 			fallthrough
 
 		case "INSERT":
@@ -84,10 +79,7 @@ func (sr *serviceSvc) inventory(ctx context.Context, event models.DynamoDBEvent)
 			if err != nil {
 				return err
 			}
-
 		}
-
-		fmt.Printf("New inventory sync request found\n")
 	}
 	return nil
 }

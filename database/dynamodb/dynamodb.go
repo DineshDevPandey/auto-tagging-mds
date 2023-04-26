@@ -895,7 +895,6 @@ func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []m
 			// TODO: create logic for condition
 
 		}
-
 		if updateDb {
 			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
 			service.Category = utils.AppendTag(service.Category, cat)

@@ -45,7 +45,7 @@ func initSvc() (*companySvc, error) {
 func (sc *companySvc) companyUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var svc m.CompanyRequest
 
-	companyName, ok := request.PathParameters["company_uuid"]
+	companyUUID, ok := request.PathParameters["company_name"]
 	if ok != true {
 		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : company uuid"})
 	}
@@ -56,7 +56,7 @@ func (sc *companySvc) companyUpdate(ctx context.Context, request events.APIGatew
 		})
 	}
 
-	err := sc.db.UpdateCompany(svc, companyName)
+	err := sc.db.UpdateCompany(svc, companyUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

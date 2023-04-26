@@ -45,7 +45,7 @@ func initSvc() (*serviceUpdateSvc, error) {
 func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var svc m.ServiceRequest
 
-	serviceName, ok := request.PathParameters["service_uuid"]
+	serviceUUID, ok := request.PathParameters["service_name"]
 	if ok != true {
 		return u.ApiResponse(http.StatusOK, u.MissingParameter{ErrorMsg: "parameter required : service uuid"})
 	}
@@ -56,7 +56,7 @@ func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.AP
 		})
 	}
 
-	err := sc.db.UpdateService(svc, serviceName)
+	err := sc.db.UpdateService(svc, serviceUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

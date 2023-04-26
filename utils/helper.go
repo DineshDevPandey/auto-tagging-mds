@@ -27,6 +27,14 @@ const (
 	TARGETSEGMENT = "targetsegment"
 )
 
+const (
+	GREATER            = "GREATER"
+	LESSER             = "LESSER"
+	EQUAL              = "EQUAL"
+	GREATER_THAN_EQUAL = "GREATER_THAN_EQUAL"
+	LESSER_THAN_EQUAL  = "LESSER_THAN_EQUAL"
+)
+
 func GetPartitionKey(entity int) string {
 	partitionKey := ""
 	switch entity {
@@ -137,28 +145,28 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bool {
 
 	mdValue := getMetaDataFieldValue(rule.MetadataField, service)
-
+	// // GREATER/LESSER/EQUAL/GREATER_THAN_EQUAL/LESSER_THAN_EQUAL
 	// TODO : write logic to match multiple keywords
-	if strings.ToLower(rule.MetadataField) == "like" {
+	if strings.ToLower(rule.MetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
-		switch rule.Operator {
-		case ">":
+		switch rule.RelationalOperator {
+		case GREATER:
 			if likeCount > rule.Operand {
 				return true
 			}
-		case "<":
+		case LESSER:
 			if likeCount < rule.Operand {
 				return true
 			}
-		case ">=":
+		case GREATER_THAN_EQUAL:
 			if likeCount >= rule.Operand {
 				return true
 			}
-		case "<=":
+		case LESSER_THAN_EQUAL:
 			if likeCount <= rule.Operand {
 				return true
 			}
-		case "==":
+		case EQUAL:
 			if likeCount == rule.Operand {
 				return true
 			}

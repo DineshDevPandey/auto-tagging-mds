@@ -120,7 +120,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/services1/{service_uuid}/update
+            Path: /api/v1/services/{service_name}/update # here service_name is service_uuid
             Method: PUT
             RestApiId: !Ref AutoTaggingApi
       Environment:
@@ -215,7 +215,7 @@ Resources:
         CatchAll:
           Type: Api 
           Properties:
-            Path: /api/v1/companies1/{company_uuid}/update
+            Path: /api/v1/companies/{company_name} # here company_name is company_uuid
             Method: PUT
             RestApiId: !Ref AutoTaggingApi
       Environment:

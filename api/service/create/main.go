@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/go-playground/validator"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -46,6 +47,14 @@ func (sc *serviceCreateSvc) serviceCreate(ctx context.Context, request events.AP
 	var svc m.ServiceRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
+		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
+			ErrorMsg: aws.String(err.Error()),
+		})
+	}
+
+	validate := validator.New()
+	err := validate.Struct(svc)
+	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})

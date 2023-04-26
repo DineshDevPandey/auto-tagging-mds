@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/auto-tagging-mds/database"
+	"github.com/go-playground/validator"
 
 	m "github.com/auto-tagging-mds/database/models"
 	u "github.com/auto-tagging-mds/utils"
@@ -51,7 +52,15 @@ func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProx
 		})
 	}
 
-	err := sc.db.CreateRule(svc)
+	validate := validator.New()
+	err := validate.Struct(svc)
+	if err != nil {
+		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
+			ErrorMsg: aws.String(err.Error()),
+		})
+	}
+
+	err = sc.db.CreateRule(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
