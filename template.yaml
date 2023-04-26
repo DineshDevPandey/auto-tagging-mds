@@ -417,7 +417,7 @@ Resources:
   ServiceStreamProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: stream/service
+      CodeUri: streams/service
       Handler: service
       FunctionName: ServiceStreamProcessor
       Runtime: go1.x
