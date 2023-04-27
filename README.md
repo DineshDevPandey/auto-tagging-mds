@@ -6,29 +6,28 @@ There are four entities - Service, Tag, Rule, and Company.
 
 To manage them we have following APIs -
 
-Service	POST    : http://127.0.0.1:3000/api/v1/services
-Service	GET ALL : http://127.0.0.1:3000/api/v1/services
-Service	GET     : http://127.0.0.1:3000/api/v1/services/{service_name}
-Service	PUT     : http://127.0.0.1:3000/api/v1/services/{service_uuid}
-Service	DELETE  : http://127.0.0.1:3000/api/v1/services/{service_name}
+    Service	POST    : http://127.0.0.1:3000/api/v1/services
+    Service	GET ALL : http://127.0.0.1:3000/api/v1/services
+    Service	GET     : http://127.0.0.1:3000/api/v1/services/{service_name}
+    Service	PUT     : http://127.0.0.1:3000/api/v1/services/{service_uuid}
+    Service	DELETE  : http://127.0.0.1:3000/api/v1/services/{service_name}
 
-Company	POST    : http://127.0.0.1:3000/api/v1/companies
-Company	GET ALL : http://127.0.0.1:3000/api/v1/companies
-Company	GET     : http://127.0.0.1:3000/api/v1/companies/{company_name}
-Company	PUT     : http://127.0.0.1:3000/api/v1/companies/{company_uuid}
-Company	DELETE  : http://127.0.0.1:3000/api/v1/companies/{company_name}
+    Company	POST    : http://127.0.0.1:3000/api/v1/companies
+    Company	GET ALL : http://127.0.0.1:3000/api/v1/companies
+    Company	GET     : http://127.0.0.1:3000/api/v1/companies/{company_name}
+    Company	PUT     : http://127.0.0.1:3000/api/v1/companies/{company_uuid}
+    Company	DELETE  : http://127.0.0.1:3000/api/v1/companies/{company_name}
 
-Tag	POST        : http://127.0.0.1:3000/api/v1/tags
-Tag	GET ALL     : http://127.0.0.1:3000/api/v1/tags
-Tag	GET         : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
-Tag	PUT         : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
-Tag	DELETE      : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
+    Tag POST        : http://127.0.0.1:3000/api/v1/tags
+    Tag GET ALL     : http://127.0.0.1:3000/api/v1/tags
+    Tag GET         : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
+    Tag DELETE      : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
 
-Rule POST       : http://127.0.0.1:3000/api/v1/rules
-Rule GET ALL    : http://127.0.0.1:3000/api/v1/rules
-Rule GET        : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
-Rule PUT        : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
-Rule DELETE     : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
+    Rule POST       : http://127.0.0.1:3000/api/v1/rules
+    Rule GET ALL    : http://127.0.0.1:3000/api/v1/rules
+    Rule GET        : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
+    Rule PUT        : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
+    Rule DELETE     : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
 
 This is a sample template for hello-world-sam - Below is a brief explanation of what we have generated for you:
 
