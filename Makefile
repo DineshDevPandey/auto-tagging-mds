@@ -94,5 +94,5 @@ rule_update: ./api/rule/update/main.go
 rule_delete: ./api/rule/delete/main.go
 	go build -o ./api/rule/delete/delete ./api/rule/delete
 
-service_streams: ./streams/service/main.go
-	go build -o ./streams/service/service ./streams/service
+service_streams: ./streams/main.go
+	go build -o ./streams/streams ./streams
