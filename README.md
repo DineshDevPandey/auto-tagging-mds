@@ -23,7 +23,7 @@ Tag	GET ALL     : http://127.0.0.1:3000/api/v1/tags
 Tag	GET         : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
 Tag	PUT         : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
 Tag	DELETE      : http://127.0.0.1:3000/api/v1/tags/{key}/{value}
-	
+
 Rule POST       : http://127.0.0.1:3000/api/v1/rules
 Rule GET ALL    : http://127.0.0.1:3000/api/v1/rules
 Rule GET        : http://127.0.0.1:3000/api/v1/rules/{rule_uuid}
