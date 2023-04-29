@@ -865,7 +865,7 @@ func (d *Database) GetRuleByUUID(uuid string) (models.RuleResponse, error) {
 	return models.RuleResponse{}, nil
 }
 
-func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []models.RuleResponse) error {
+func (d *Database) AttachTagWithService(streamData models.StreamData, rules []models.RuleResponse) error {
 
 	for i, rule := range rules {
 		fmt.Printf("rule number : %v : key : %v : value : %v\n", i, rule.TagKey, rule.TagValue)
@@ -875,18 +875,56 @@ func (d *Database) AttachTagWithService(service models.ServiceRequest, rules []m
 		case "CONTAIN":
 			fallthrough
 		case "RELATION":
-			updateDb = utils.IsTagValueFound(service, rule)
+			updateDb = utils.IsTagValueFound(streamData, rule)
 		case "SUBSCRIPTION_COUNT":
 			// TODO: create logic for condition
 
 		}
-		if updateDb {
-			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
-			service.Category = utils.AppendTag(service.Category, cat)
-			fmt.Printf("service.Category : %v\n", service.Category)
-			d.CreateService(service)
-			fmt.Println("service updated")
-		}
+		_ = updateDb
+		// if updateDb {
+		// cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
+		// 	service.Category = utils.AppendTag(streamData.Category, cat)
+		// 	fmt.Printf("service.Category : %v\n", streamData.Category)
+		// 	d.CreateService(streamData)
+		// 	fmt.Println("streamData updated")
+		// }
 	}
 	return nil
+}
+
+func (d *Database) UpdateCategoryInService(cat models.Category, streamData models.StreamData) error {
+
+	// construct the UpdateItemInput struct
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName: aws.String(d.tableName.MDSTable),
+		Key: map[string]*dynamodb.AttributeValue{
+			"PK": {
+				S: aws.String(streamData.PK),
+			},
+			"SK": {
+				S: aws.String(streamData.SK),
+			},
+		},
+		UpdateExpression: aws.String("SET #attr = list_append(#attr, :val)"),
+		ExpressionAttributeNames: map[string]*string{
+			"#attr": aws.String("category"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":val": {
+				L: []*dynamodb.AttributeValue{
+					{
+						M: map[string]*dynamodb.AttributeValue{
+							"key":   {S: aws.String(cat.Key)},
+							"value": {S: aws.String(cat.Value)},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// call the UpdateItem method to update the item in the table
+	_, err := d.db.UpdateItem(updateInput)
+
+	return err
 }

@@ -2,7 +2,7 @@
 .PHONY: all
 
 # Original make file
-all: build
+all: clean build
 
 build:
 	GOOS=linux GOARCH=amd64 $(MAKE) service_index
@@ -96,3 +96,7 @@ rule_delete: ./api/rule/delete/main.go
 
 service_streams: ./streams/main.go
 	go build -o ./streams/streams ./streams
+
+
+clean:
+	find . -perm +100 -type f -delete

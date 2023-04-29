@@ -35,6 +35,20 @@ const (
 	LESSER_THAN_EQUAL  = "LESSER_THAN_EQUAL"
 )
 
+func GetEntityType(pk string) int {
+	switch pk {
+	case "SR":
+		return SERVICE
+	case "RL":
+		return RULE
+	case "TG":
+		return TAG
+	case "CM":
+		return COMPANY
+	}
+	return -1
+}
+
 func GetPartitionKey(entity int) string {
 	partitionKey := ""
 	switch entity {
@@ -142,9 +156,9 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 	return av
 }
 
-func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bool {
+func IsTagValueFound(streamData models.StreamData, rule models.RuleResponse) bool {
 
-	mdValue := getMetaDataFieldValue(rule.MetadataField, service)
+	mdValue := getMetaDataFieldValue(rule.MetadataField, streamData)
 	fmt.Println("getMetaDataFieldValue : ", mdValue)
 	// // GREATER/LESSER/EQUAL/GREATER_THAN_EQUAL/LESSER_THAN_EQUAL
 	// TODO : write logic to match multiple keywords
@@ -182,19 +196,19 @@ func IsTagValueFound(service models.ServiceRequest, rule models.RuleResponse) bo
 	return false
 }
 
-func getMetaDataFieldValue(md string, service models.ServiceRequest) string {
+func getMetaDataFieldValue(md string, streamData models.StreamData) string {
 	value := ""
 	md = strings.ReplaceAll(strings.ToLower(md), " ", "")
 
 	switch md {
 	case DESCRIPTION:
-		value = service.Description
+		value = streamData.Description
 	case LOCATION:
-		value = service.Location
+		value = streamData.Location
 	case LIKE:
-		value = fmt.Sprint(service.Like)
+		value = fmt.Sprint(streamData.Like)
 	case TARGETSEGMENT:
-		value = service.TargetSegment
+		value = streamData.TargetSegment
 	default:
 		return ""
 	}
@@ -203,14 +217,11 @@ func getMetaDataFieldValue(md string, service models.ServiceRequest) string {
 }
 
 func AppendTag(category []models.Category, cat models.Category) []models.Category {
-	isTagPresent := false
 	for _, tag := range category {
 		if tag.Key == cat.Key && tag.Value == cat.Value {
-			isTagPresent = true
+			return category
 		}
 	}
-	if !isTagPresent {
-		category = append(category, cat)
-	}
+	category = append(category, cat)
 	return category
 }

@@ -217,3 +217,33 @@ type RuleResponse struct {
 	CreatedAt          string `json:"created_at"`
 	UpdatedAt          string `json:"updated_at"`
 }
+
+type StreamData struct {
+	PK                 string     `json:"PK"`
+	SK                 string     `json:"SK"`
+	UUID               string     `json:"uuid,omitempty"`
+	Operation          string     `json:"operation,omitempty"`
+	TagKey             string     `json:"tag_key,omitempty"`
+	TagValue           string     `json:"tag_value,omitempty"`
+	MetadataField      string     `json:"metadata_field,omitempty"`
+	Keyword            string     `json:"keyword,omitempty"`
+	KeywordOperator    string     `json:"keyword_operator,omitempty"`
+	RelationalOperator string     `json:"relational_operator,omitempty"`
+	Operand            int        `json:"operand,omitempty"`
+	SubscriptionCount  int        `json:"subscription_count,omitempty"`
+	Key                string     `json:"key,omitempty"`
+	Value              string     `json:"value,omitempty"`
+	CompanyName        string     `json:"company_name,omitempty"`
+	Description        string     `json:"description,omitempty"`
+	ServiceList        []Services `json:"service_list,omitempty"`
+	ServiceName        string     `json:"service_name,omitempty"`
+	MoreAbout          string     `json:"more_about,omitempty"`
+	Category           []Category `json:"category,omitempty"`
+	Like               int        `json:"like,omitempty"`
+	Stage              string     `json:"stage,omitempty"`
+	TargetSegment      string     `json:"target_segment,omitempty"`
+	Deployment         string     `json:"deployment,omitempty"`
+	BusinessModel      string     `json:"business_model,omitempty"`
+	Pricing            string     `json:"pricing,omitempty"`
+	Location           string     `json:"location,omitempty"`
+}

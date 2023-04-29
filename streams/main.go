@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/auto-tagging-mds/database"
@@ -16,14 +17,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-type serviceSvc struct {
+type streamSvc struct {
 	db            database.Database
 	tableName     models.Tables
 	dbCallTimeout time.Duration
 	logLevel      string
 }
 
-func initSvc() (*serviceSvc, error) {
+func initSvc() (*streamSvc, error) {
 	tablesName := utils.InitTablesName()
 
 	var db database.Database
@@ -33,59 +34,111 @@ func initSvc() (*serviceSvc, error) {
 		return nil, err
 	}
 
-	return &serviceSvc{
+	return &streamSvc{
 		db:            db,
 		dbCallTimeout: 2 * time.Second,
 	}, nil
 }
 
-func (sr *serviceSvc) inventory(ctx context.Context, event models.DynamoDBEvent) error {
+func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEvent) error {
 
 	// fetch all rules
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	rules, err := sr.db.GetAllRules()
 	if err != nil {
 		return nil
 	}
 
+	// wg.Add(1)
+	// tags, err := sr.db.GetAllTags()
+	// if err != nil {
+	// 	return nil
+	// }
+
+	// wg.Add(1)
+	// services, err := sr.db.GetAllServices()
+	// if err != nil {
+	// 	return nil
+	// }
+
+	wg.Wait()
+
 	for ii, record := range event.Records {
 
 		fmt.Printf("Service : current %v total : %v\n", ii, len(event.Records))
+		continue
+		fmt.Printf("Continue didn't work\n")
+
 		change := record.Change
-		newImage := change.NewImage 
+		newImage := change.NewImage
+		oldImage := change.OldImage
 
-		var oldService models.ServiceRequest
-		var newService models.ServiceRequest
+		var oldData models.StreamData
+		var newData models.StreamData
 
-		err := dynamodbattribute.UnmarshalMap(newImage, &newService)
+		err := dynamodbattribute.UnmarshalMap(newImage, &newData)
 		if err != nil {
 			fmt.Println("UnmarshalMap error :", err)
 			return err
 		}
 
+		err = dynamodbattribute.UnmarshalMap(oldImage, &oldData)
+		if err != nil {
+			fmt.Println("UnmarshalMap error :", err)
+			return err
+		}
+
+		entity := utils.GetEntityType(newData.PK)
 		switch record.EventName {
 		case "MODIFY":
-			err := dynamodbattribute.UnmarshalMap(newImage, &oldService)
-			if err != nil {
-				fmt.Println("UnmarshalMap error :", err)
-				return err
+			switch entity {
+			case utils.SERVICE:
+				// do tag analysis
+				if oldData.Description == newData.Description {
+					// fetch rules and add tags in service
+				}
+			case utils.RULE:
+				// do tag aanalysis
+			case utils.TAG:
+				// not in assignment scope; update services
+			case utils.COMPANY:
+				// not in assignment scope; do nothing
 			}
-			if oldService.Description == newService.Description {
-				return nil
-			}
-			fallthrough
-
 		case "INSERT":
-			err := sr.db.AttachTagWithService(newService, rules)
-			if err != nil {
-				return err
+			switch entity {
+			case utils.SERVICE:
+				// fetch rules and add tags in service
+				err := sr.db.AttachTagWithService(newData, rules)
+				if err != nil {
+					return err
+				}
+			case utils.RULE:
+				// may need to update services (tag analysys)
+			case utils.TAG:
+				// not in assignment scope; update service
+			case utils.COMPANY:
+				// not in assignment scope;
+			}
+		case "REMOVE":
+			switch entity {
+			case utils.SERVICE:
+				// not in assignment scope; update companies
+			case utils.RULE:
+				// not in assignment scope; update services
+			case utils.TAG:
+				// not in assignment scope; update services
+			case utils.COMPANY:
+				// not in assignment scope; do nothing
 			}
 		}
 	}
 	return nil
 }
 
-func (sr *serviceSvc) handler(ctx context.Context, event models.DynamoDBEvent) error {
-	err := sr.inventory(ctx, event)
+func (sr *streamSvc) handler(ctx context.Context, event models.DynamoDBEvent) error {
+	err := sr.streamHandler(ctx, event)
 	if err != nil {
 		log.Fatal(err)
 	}

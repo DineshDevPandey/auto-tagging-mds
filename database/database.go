@@ -18,7 +18,7 @@ type Database interface {
 	CreateTag(models.TagCreateRequest) (models.TagCreateRequest, error)
 	GetAllTags() ([]models.TagListResponse, error)
 	DeleteTag(key string, value string) error
-	GetTag(key string,  value string) (models.TagListResponse, error)
+	GetTag(key string, value string) (models.TagListResponse, error)
 
 	CreateRule(models.RuleRequest) error
 	GetAllRules() ([]models.RuleResponse, error)
@@ -26,5 +26,5 @@ type Database interface {
 	UpdateRule(models.RuleRequest, string) error
 	DeleteRule(ruleUUID string) error
 
-	AttachTagWithService(service models.ServiceRequest, rules []models.RuleResponse) error
+	AttachTagWithService(service models.StreamData, rules []models.RuleResponse) error
 }
