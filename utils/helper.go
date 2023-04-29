@@ -35,6 +35,11 @@ const (
 	LESSER_THAN_EQUAL  = "LESSER_THAN_EQUAL"
 )
 
+const (
+	AND = "AND"
+	OR  = "OR"
+)
+
 func GetEntityType(pk string) int {
 	switch pk {
 	case "SR":
@@ -64,7 +69,7 @@ func GetPartitionKey(entity int) string {
 	return partitionKey
 }
 
-func GetRangeKey(entity int, name, value, metadataField, operation string) string {
+func GetRangeKey(entity int, name, value, uuid string) string {
 	rangeKey := ""
 	switch entity {
 	case SERVICE:
@@ -78,7 +83,7 @@ func GetRangeKey(entity int, name, value, metadataField, operation string) strin
 			rangeKey = "TG#" + name + "#" + value
 		}
 	case RULE:
-		rangeKey = "RL#" + name + "#" + value + "#" + metadataField + "#" + operation
+		rangeKey = "RL#" + uuid
 	}
 	return rangeKey
 }

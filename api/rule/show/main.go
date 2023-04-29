@@ -50,15 +50,17 @@ func (sc *ruleSvc) ruleShow(ctx context.Context, request events.APIGatewayProxyR
 		return u.ApiResponse(http.StatusBadRequest, u.MissingParameter{ErrorMsg: "parameter required : rule uuid"})
 	}
 
-	rule, err := sc.db.GetRuleByUUID(ruleUUID)
+	rule, err := sc.db.GetRule(ruleUUID)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	if rule.RuleUUID == "" {
-		return u.ApiResponse(http.StatusNotFound, utils.EmptyStruct{})
+	if len(rule) == 0 {
+		return u.ApiResponse(http.StatusNotFound, []utils.EmptyStruct{})
+	} else if rule[0].RuleUUID == "" {
+		return u.ApiResponse(http.StatusNotFound, []utils.EmptyStruct{})
 	}
 
 	return u.ApiResponse(http.StatusOK, rule)

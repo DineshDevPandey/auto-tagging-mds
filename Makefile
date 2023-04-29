@@ -99,5 +99,4 @@ service_streams: ./streams/main.go
 
 
 clean:
-#	find . -type f -perm /a=x -delete
 	find . -type f -exec sh -c 'test -x "{}" && rm "{}"' \;

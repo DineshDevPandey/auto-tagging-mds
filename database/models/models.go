@@ -171,17 +171,19 @@ type Tags struct {
 }
 
 type Rule struct {
-	Operation       string `json:"operation" validate:"min=1,required"` // CONTAIN/RELATION
-	TagKey          string `json:"tag_key"`
-	TagValue        string `json:"tag_value"`
-	MetadataField   string `json:"metadata_field"`
-	Keyword         string `json:"keyword"`
-	KeywordOperator string `json:"keyword_operator"`
-	Operator        string `json:"relational_operator"`
-	Operand         int    `json:"operand"`
-	UseCount        int    `json:"use_count"`
-	CreatedAt       string `json:"created_at"`
-	UpdatedAt       string `json:"updated_at"`
+	Operation         string `json:"operation" validate:"min=1,required"` // CONTAIN/RELATION
+	TagKey            string `json:"tag_key"`
+	TagValue          string `json:"tag_value"`
+	MetadataField     string `json:"metadata_field"`
+	Keyword           string `json:"keyword"`
+	KeywordOperator   string `json:"keyword_operator"`
+	Operator          string `json:"relational_operator"`
+	Operand           int    `json:"relational_operand"`
+	SubscriptionCount int    `json:"subscription_count"`
+	IsSibling         bool   `json:"is_sibling"`
+	SiblingUUID       string `json:"sibling_uuid"`
+	CreatedAt         string `json:"created_at"`
+	UpdatedAt         string `json:"updated_at"`
 }
 
 type RuleRequest struct {
@@ -195,8 +197,10 @@ type RuleRequest struct {
 	Keyword            string `json:"keyword" validate:"min=1"`
 	KeywordOperator    string `json:"keyword_operator"`    //AND|OR|NONE
 	RelationalOperator string `json:"relational_operator"` //GREATER_THAN|LESSER_THAN|EQUAL|GREATER_THAN_EQUAL|LESSER_THAN_EQUAL|NONE
-	Operand            int    `json:"operand"`
+	Operand            int    `json:"relational_operand"`
 	SubscriptionCount  int    `json:"subscription_count"`
+	IsSibling          bool   `json:"is_sibling"`
+	SiblingUUID        string `json:"sibling_uuid"`
 	CreatedAt          string `json:"created_at"`
 	UpdatedAt          string `json:"updated_at"`
 }
@@ -212,8 +216,10 @@ type RuleResponse struct {
 	Keyword            string `json:"keyword"`
 	KeywordOperator    string `json:"keyword_operator"`
 	RelationalOperator string `json:"relational_operator"`
-	Operand            int    `json:"operand"`
+	Operand            int    `json:"relational_operand"`
 	SubscriptionCount  int    `json:"subscription_count"`
+	IsSibling          bool   `json:"is_sibling"`
+	SiblingUUID        string `json:"sibling_uuid"`
 	CreatedAt          string `json:"created_at"`
 	UpdatedAt          string `json:"updated_at"`
 }
@@ -229,8 +235,10 @@ type StreamData struct {
 	Keyword            string     `json:"keyword,omitempty"`
 	KeywordOperator    string     `json:"keyword_operator,omitempty"`
 	RelationalOperator string     `json:"relational_operator,omitempty"`
-	Operand            int        `json:"operand,omitempty"`
+	Operand            int        `json:"relational_operand,omitempty"`
 	SubscriptionCount  int        `json:"subscription_count,omitempty"`
+	IsSibling          bool       `json:"is_sibling"`
+	SiblingUUID        string     `json:"sibling_uuid"`
 	Key                string     `json:"key,omitempty"`
 	Value              string     `json:"value,omitempty"`
 	CompanyName        string     `json:"company_name,omitempty"`
