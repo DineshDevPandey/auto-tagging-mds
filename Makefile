@@ -2,7 +2,7 @@
 .PHONY: all
 
 # Original make file
-all: clean build
+all: build
 
 build:
 	GOOS=linux GOARCH=amd64 $(MAKE) service_index
@@ -99,4 +99,5 @@ service_streams: ./streams/main.go
 
 
 clean:
-	find . -perm +100 -type f -delete
+#	find . -type f -perm /a=x -delete
+	find . -type f -exec sh -c 'test -x "{}" && rm "{}"' \;
