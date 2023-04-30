@@ -673,6 +673,8 @@ func (d *Database) IsDuplicateRule(rule models.RuleRequest) (bool, error) {
 		And(expression.Name("relational_operator").Equal(expression.Value(rule.RelationalOperator))).
 		And(expression.Name("subscription_count").Equal(expression.Value(rule.SubscriptionCount))).
 		And(expression.Name("relational_operand").Equal(expression.Value(rule.Operand))).
+		And(expression.Name("corule_metadata_field").Equal(expression.Value(rule.CoRuleMetadataField))).
+		And(expression.Name("corule_keyword").Equal(expression.Value(rule.CoRuleKeyword))).
 		And(expression.Name("tag_value").Equal(expression.Value(rule.TagValue)))
 
 	expr, err := expression.NewBuilder().WithFilter(filter1).WithKeyCondition(keyCond).Build()
@@ -709,44 +711,9 @@ func (d *Database) IsDuplicateRule(rule models.RuleRequest) (bool, error) {
 	return false, nil
 }
 
-func (d *Database) CreateSibling(rule models.RuleRequest) error {
-	rule.RuleUUID = utils.GetUUID()
-	rule.IsSibling = true
-	return nil
-}
-
-func prepereRule(rule models.RuleRequest) models.RuleRequest {
-	rule.RuleUUID = utils.GetUUID()
-
-	datetime := utils.DateString("datetime")
-	rule.CreatedAt, rule.UpdatedAt = datetime, datetime
-	rule.PK = utils.GetPartitionKey(utils.RULE)
-	rule.SK = utils.GetRangeKey(utils.RULE, blank, blank, rule.RuleUUID)
-
-	return rule
-}
-
-func prepereCoRule(rule models.RuleRequest, coRule models.RuleRequest) (models.RuleRequest, models.RuleRequest) {
-	rule.SiblingUUID = utils.GetUUID()
-
-	coRule.IsSibling = true
-	coRule.RuleUUID = rule.SiblingUUID
-	coRule.PK = utils.GetPartitionKey(utils.RULE)
-	coRule.SK = utils.GetRangeKey(utils.RULE, blank, blank, coRule.RuleUUID)
-	datetime := utils.DateString("datetime")
-	coRule.CreatedAt, coRule.UpdatedAt = datetime, datetime
-
-	return rule, coRule
-}
-
-func (d *Database) CreateRule(rules []models.RuleRequest) error {
-
-	if len(rules) == 0 || len(rules) > 2 {
-		return errors.New("Invalid data")
-	}
-
+func (d *Database) CreateRule(rule models.RuleRequest) error {
 	// check if rule already exist
-	isDuplicateRule, err := d.IsDuplicateRule(rules[0])
+	isDuplicateRule, err := d.IsDuplicateRule(rule)
 	if err != nil {
 		return err
 	}
@@ -755,16 +722,11 @@ func (d *Database) CreateRule(rules []models.RuleRequest) error {
 		return errors.New("Rule already exist")
 	}
 
-	coRule := models.RuleRequest{}
-	rule := prepereRule(rules[0])
-
-	if len(rules) == 2 {
-		rule, coRule = prepereCoRule(rule, rules[1])
-		err := d.insertRule(coRule)
-		if err != nil {
-			return err
-		}
-	}
+	rule.RuleUUID = utils.GetUUID()
+	datetime := utils.DateString("datetime")
+	rule.CreatedAt, rule.UpdatedAt = datetime, datetime
+	rule.PK = utils.GetPartitionKey(utils.RULE)
+	rule.SK = utils.GetRangeKey(utils.RULE, blank, blank, rule.RuleUUID)
 
 	err = d.insertRule(rule)
 	if err != nil {
@@ -825,14 +787,14 @@ func (d *Database) GetAllRules() ([]models.RuleResponse, error) {
 	return rules, nil
 }
 
-func (d *Database) fetchRule(uuid string) (models.RuleResponse, error) {
+func (d *Database) GetRule(ruleUUID string) (models.RuleResponse, error) {
 
 	rule := models.RuleResponse{}
 	pkName := utils.GetPartitionKeyName()
 	pk := utils.GetPartitionKey(utils.RULE)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.RULE, blank, blank, uuid)
+	sk := utils.GetRangeKey(utils.RULE, blank, blank, ruleUUID)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -858,52 +820,28 @@ func (d *Database) fetchRule(uuid string) (models.RuleResponse, error) {
 	return rule, nil
 }
 
-func (d *Database) GetRule(ruleUUID string) ([]models.RuleResponse, error) {
-
-	rules := make([]models.RuleResponse, 0)
-	rule, err := d.fetchRule(ruleUUID)
-	if err != nil {
-		return rules, err
-	}
-
-	rules = append(rules, rule)
-	if rule.SiblingUUID != "" {
-		coRule, err := d.fetchRule(rule.SiblingUUID)
-		if err != nil {
-			return rules, err
-		}
-		rules = append(rules, coRule)
-	}
-
-	return rules, nil
-}
-
 // send both values togather
-func (d *Database) UpdateRule(updatedRule []models.RuleRequest, ruleUUID string) error {
+func (d *Database) UpdateRule(updatedRule models.RuleRequest, ruleUUID string) error {
 
 	oldRule, err := d.GetRule(ruleUUID)
 	if err != nil {
 		return err
 	}
 
-	if len(oldRule) == 0 {
+	if oldRule.Operation == "" {
 		return errors.New("rule not found")
 	}
 
-	for i, _ := range updatedRule {
-		// old created at
-		updatedRule[i].PK = oldRule[i].PK
-		updatedRule[i].SK = oldRule[i].SK
-		updatedRule[i].CreatedAt = oldRule[i].CreatedAt
-		// new updated at
-		updatedRule[i].UpdatedAt = utils.DateString("datetime")
-		updatedRule[i].PK = utils.GetPartitionKey(utils.RULE)
-		updatedRule[i].SK = utils.GetRangeKey(utils.RULE, blank, blank, updatedRule[i].RuleUUID)
+	// old created at
+	updatedRule.PK = oldRule.PK
+	updatedRule.SK = oldRule.SK
+	updatedRule.CreatedAt = oldRule.CreatedAt
+	// new updated at
+	updatedRule.UpdatedAt = utils.DateString("datetime")
 
-		err = d.insertRule(updatedRule[i])
-		if err != nil {
-			return err
-		}
+	err = d.insertRule(updatedRule)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -911,36 +849,11 @@ func (d *Database) UpdateRule(updatedRule []models.RuleRequest, ruleUUID string)
 
 func (d *Database) DeleteRule(ruleUUID string) error {
 
-	rule, err := d.GetRuleByUUID(ruleUUID)
-	if err != nil {
-		return err
-	}
-
-	if rule.IsSibling {
-		return errors.New("this is a co-rule/sibling rule, please delete main rule first")
-	}
-
-	if rule.SiblingUUID != "" {
-		d.deleteRule(rule.SiblingUUID)
-		if err != nil {
-			return err
-		}
-	}
-
-	d.deleteRule(ruleUUID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *Database) deleteRule(uuid string) error {
 	pkName := utils.GetPartitionKeyName()
 	pk := utils.GetPartitionKey(utils.RULE)
 
 	skName := utils.GetRangeKeyName()
-	sk := utils.GetRangeKey(utils.RULE, blank, blank, uuid)
+	sk := utils.GetRangeKey(utils.RULE, blank, blank, ruleUUID)
 
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -961,69 +874,34 @@ func (d *Database) deleteRule(uuid string) error {
 	return nil
 }
 
-func (d *Database) GetRuleByUUID(uuid string) (models.RuleResponse, error) {
-
-	rules := []models.RuleResponse{}
-
-	input := &dynamodb.QueryInput{
-		TableName:              aws.String(d.tableName.MDSTable),
-		IndexName:              aws.String("uuid-index"),
-		KeyConditionExpression: aws.String("#key = :value"),
-		ExpressionAttributeNames: map[string]*string{
-			"#key": aws.String("uuid"),
-		},
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":value": {
-				S: aws.String(uuid),
-			},
-		},
-	}
-
-	result, err := d.db.Query(input)
-	if err != nil {
-		return models.RuleResponse{}, err
-	}
-
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &rules)
-	if err != nil {
-		return models.RuleResponse{}, err
-	}
-
-	if len(result.Items) > 0 {
-		return rules[0], nil
-	}
-
-	return models.RuleResponse{}, nil
-}
-
 func (d *Database) AttachTagWithService(streamData models.StreamData, rules []models.RuleResponse) error {
 
 	for i, rule := range rules {
 		fmt.Printf("rule number : %v : key : %v : value : %v\n", i, rule.TagKey, rule.TagValue)
-
 		updateDb := false
 		switch rule.Operation {
 		case "CONTAIN":
 			fallthrough
 		case "RELATION":
-			updateDb = utils.IsTagValueFound(streamData, rule)
+			updateDb = utils.IsTagAttachable(streamData, rules[i])
+			fmt.Println("called IsTagAttachable : updateDb ;", updateDb)
 		case "SUBSCRIPTION_COUNT":
 			// TODO: create logic for condition
-
 		}
-		_ = updateDb
-		// if updateDb {
-		// cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
-		// 	service.Category = utils.AppendTag(streamData.Category, cat)
-		// 	fmt.Printf("service.Category : %v\n", streamData.Category)
-		// 	d.CreateService(streamData)
-		// 	fmt.Println("streamData updated")
-		// }
+		if updateDb {
+			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
+			if isPresent := utils.IsTagAlreadyPresent(streamData.Category, cat); isPresent {
+				fmt.Printf("tag already present : key : %v : value : %v\n", cat.Key, cat.Value)
+				return nil
+			}
+			d.AppendTagToService(cat, streamData)
+			fmt.Println("streamData updated")
+		}
 	}
 	return nil
 }
 
-func (d *Database) UpdateCategoryInService(cat models.Category, streamData models.StreamData) error {
+func (d *Database) AppendTagToService(cat models.Category, streamData models.StreamData) error {
 
 	// construct the UpdateItemInput struct
 	updateInput := &dynamodb.UpdateItemInput{

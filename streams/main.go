@@ -68,8 +68,8 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 	for ii, record := range event.Records {
 
 		fmt.Printf("Service : current %v total : %v\n", ii, len(event.Records))
-		continue
-		fmt.Printf("Continue didn't work\n")
+		// continue
+		// fmt.Printf("Continue didn't work\n")
 
 		change := record.Change
 		newImage := change.NewImage
@@ -110,6 +110,7 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 			switch entity {
 			case utils.SERVICE:
 				// fetch rules and add tags in service
+				fmt.Println("calling AttachTagWithService")
 				err := sr.db.AttachTagWithService(newData, rules)
 				if err != nil {
 					return err

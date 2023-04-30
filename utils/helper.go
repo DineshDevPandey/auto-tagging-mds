@@ -161,38 +161,69 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 	return av
 }
 
-func IsTagValueFound(streamData models.StreamData, rule models.RuleResponse) bool {
+func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) bool {
 
-	mdValue := getMetaDataFieldValue(rule.MetadataField, streamData)
+	fmt.Println("inside IsTagAttachable ")
+
+	// ruleMetadataFieldList contains MetadataField and CoRuleMetadataField
+	ruleMetadataFieldList := make([]string, 0)
+	// ruleKeywordList contains Keyword and CoRuleKeyword
+	ruleKeywordList := make([]string, 0)
+
+	ruleMetadataFieldList = append(ruleMetadataFieldList, rule.MetadataField)
+	ruleKeywordList = append(ruleKeywordList, rule.Keyword)
+
+	if rule.CoRuleMetadataField != "" {
+		ruleMetadataFieldList = append(ruleMetadataFieldList, rule.CoRuleMetadataField)
+		ruleKeywordList = append(ruleKeywordList, rule.CoRuleKeyword)
+	}
+
+	var cond [2]bool
+	for i, ruleMetadataField := range ruleMetadataFieldList {
+		cond[i] = matchCondition(ruleMetadataField, streamData, ruleKeywordList[i], rule.Operand, rule.RelationalOperator)
+	}
+
+	switch rule.KeywordOperator {
+	case AND:
+		return cond[0] && cond[1]
+	case OR:
+		return cond[0] || cond[1]
+	default:
+		return false
+	}
+}
+
+func matchCondition(ruleMetadataField string, streamData models.StreamData, keyword string, operand int, relationalOperator string) bool {
+	// mdValue : description value, like value
+	mdValue := getMetaDataFieldValue(ruleMetadataField, streamData)
 	fmt.Println("getMetaDataFieldValue : ", mdValue)
-	// // GREATER/LESSER/EQUAL/GREATER_THAN_EQUAL/LESSER_THAN_EQUAL
-	// TODO : write logic to match multiple keywords
-	if strings.ToLower(rule.MetadataField) == LIKE {
+
+	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
-		switch rule.RelationalOperator {
+		switch relationalOperator {
 		case GREATER:
-			if likeCount > rule.Operand {
+			if likeCount > operand {
 				return true
 			}
 		case LESSER:
-			if likeCount < rule.Operand {
+			if likeCount < operand {
 				return true
 			}
 		case GREATER_THAN_EQUAL:
-			if likeCount >= rule.Operand {
+			if likeCount >= operand {
 				return true
 			}
 		case LESSER_THAN_EQUAL:
-			if likeCount <= rule.Operand {
+			if likeCount <= operand {
 				return true
 			}
 		case EQUAL:
-			if likeCount == rule.Operand {
+			if likeCount == operand {
 				return true
 			}
 		}
 	} else {
-		keyword := strings.ToLower(rule.Keyword)
+		keyword := strings.ToLower(keyword)
 		if strings.Contains(mdValue, keyword) {
 			fmt.Printf("strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
 			return true
@@ -221,12 +252,11 @@ func getMetaDataFieldValue(md string, streamData models.StreamData) string {
 	return strings.ToLower(value)
 }
 
-func AppendTag(category []models.Category, cat models.Category) []models.Category {
+func IsTagAlreadyPresent(category []models.Category, cat models.Category) bool {
 	for _, tag := range category {
 		if tag.Key == cat.Key && tag.Value == cat.Value {
-			return category
+			return true
 		}
 	}
-	category = append(category, cat)
-	return category
+	return false
 }

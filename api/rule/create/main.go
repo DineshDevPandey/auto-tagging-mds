@@ -44,7 +44,7 @@ func initSvc() (*ruleSvc, error) {
 }
 
 func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var svc []m.RuleRequest
+	var svc m.RuleRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
@@ -53,16 +53,14 @@ func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProx
 	}
 
 	validate := validator.New()
-	for _, r := range svc {
-		err := validate.Struct(r)
-		if err != nil {
-			return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
-				ErrorMsg: aws.String(err.Error()),
-			})
-		}
+	err := validate.Struct(svc)
+	if err != nil {
+		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
+			ErrorMsg: aws.String(err.Error()),
+		})
 	}
 
-	err := sc.db.CreateRule(svc)
+	err = sc.db.CreateRule(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),

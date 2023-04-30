@@ -57,9 +57,7 @@ func (sc *ruleSvc) ruleShow(ctx context.Context, request events.APIGatewayProxyR
 		})
 	}
 
-	if len(rule) == 0 {
-		return u.ApiResponse(http.StatusNotFound, []utils.EmptyStruct{})
-	} else if rule[0].RuleUUID == "" {
+	if rule.Operation == "" {
 		return u.ApiResponse(http.StatusNotFound, []utils.EmptyStruct{})
 	}
 

@@ -20,11 +20,11 @@ type Database interface {
 	DeleteTag(key string, value string) error
 	GetTag(key string, value string) (models.TagListResponse, error)
 
-	CreateRule([]models.RuleRequest) error
+	CreateRule(models.RuleRequest) error
 	GetAllRules() ([]models.RuleResponse, error)
-	GetRule(ruleUUID string) ([]models.RuleResponse, error)
-	GetRuleByUUID(ruleUUID string) (models.RuleResponse, error)
-	UpdateRule([]models.RuleRequest, string) error
+	GetRule(ruleUUID string) (models.RuleResponse, error)
+	// GetRuleByUUID(ruleUUID string) (models.RuleResponse, error)
+	UpdateRule(models.RuleRequest, string) error
 	DeleteRule(ruleUUID string) error
 
 	AttachTagWithService(service models.StreamData, rules []models.RuleResponse) error
