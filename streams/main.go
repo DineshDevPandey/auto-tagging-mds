@@ -68,8 +68,8 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 	for ii, record := range event.Records {
 
 		fmt.Printf("Service : current %v total : %v\n", ii, len(event.Records))
-		// continue
-		// fmt.Printf("Continue didn't work\n")
+		continue
+		fmt.Printf("Continue didn't work\n")
 
 		change := record.Change
 		newImage := change.NewImage
