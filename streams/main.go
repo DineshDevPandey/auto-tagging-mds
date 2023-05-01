@@ -25,6 +25,7 @@ type streamSvc struct {
 }
 
 func initSvc() (*streamSvc, error) {
+	fmt.Printf("stream started : initSvc\n")
 	tablesName := utils.InitTablesName()
 
 	var db database.Database
@@ -42,6 +43,7 @@ func initSvc() (*streamSvc, error) {
 
 func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEvent) error {
 
+	fmt.Printf("stream started : streamHandler\n")
 	// fetch all rules
 	var wg sync.WaitGroup
 
@@ -150,6 +152,7 @@ func main() {
 	// catch run time error
 	defer utils.Recover()
 
+	fmt.Printf("stream started : main\n")
 	svc, err := initSvc()
 	if err != nil {
 		log.Fatal(err)
