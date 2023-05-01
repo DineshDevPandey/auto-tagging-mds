@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/auto-tagging-mds/database"
@@ -45,9 +44,9 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 
 	fmt.Printf("stream started : streamHandler\n")
 	// fetch all rules
-	var wg sync.WaitGroup
+	// var wg sync.WaitGroup
 
-	wg.Add(1)
+	// wg.Add(1)
 	rules, err := sr.db.GetAllRules()
 	if err != nil {
 		return nil
@@ -65,7 +64,9 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 	// 	return nil
 	// }
 
-	wg.Wait()
+	// wg.Wait()
+
+	fmt.Printf("stream started : GetAllRules : %v\n", len(rules))
 
 	for ii, record := range event.Records {
 
