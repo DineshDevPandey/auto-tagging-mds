@@ -59,10 +59,10 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 	// }
 
 	// wg.Add(1)
-	// services, err := sr.db.GetAllServices()
-	// if err != nil {
-	// 	return nil
-	// }
+	services, err := sr.db.GetAllServices()
+	if err != nil {
+		return nil
+	}
 
 	// wg.Wait()
 
@@ -101,6 +101,10 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 				// do tag analysis
 				if oldData.Description == newData.Description {
 					// fetch rules and add tags in service
+					err := sr.db.AttachTagWithService(newData, rules)
+					if err != nil {
+						return err
+					}
 				}
 			case utils.RULE:
 				// do tag aanalysis
@@ -120,6 +124,10 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 				}
 			case utils.RULE:
 				// may need to update services (tag analysys)
+				err := sr.db.ProcessRuleForServices(newData, services)
+				if err != nil {
+					return err
+				}
 			case utils.TAG:
 				// not in assignment scope; update service
 			case utils.COMPANY:

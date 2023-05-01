@@ -28,4 +28,5 @@ type Database interface {
 	DeleteRule(ruleUUID string) error
 
 	AttachTagWithService(service models.StreamData, rules []models.RuleResponse) error
+	ProcessRuleForServices(models.StreamData, []models.ServiceResponse) error
 }

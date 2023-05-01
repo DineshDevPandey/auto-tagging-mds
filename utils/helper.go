@@ -268,3 +268,41 @@ func IsTagAlreadyPresent(category []models.Category, cat models.Category) bool {
 	}
 	return false
 }
+
+func StreamDataToRuleConversion(streamData models.StreamData) (rule models.RuleResponse) {
+	rule.PK = streamData.PK
+	rule.SK = streamData.SK
+	rule.RuleUUID = streamData.UUID
+	rule.Operation = streamData.Operation
+	rule.TagKey = streamData.TagKey
+	rule.TagValue = streamData.TagValue
+	rule.MetadataField = streamData.MetadataField
+	rule.Keyword = streamData.Keyword
+	rule.KeywordOperator = streamData.KeywordOperator
+	rule.RelationalOperator = streamData.RelationalOperator
+	rule.Operand = streamData.Operand
+	rule.SubscriptionCount = streamData.SubscriptionCount
+	rule.CoRuleMetadataField = streamData.CoRuleMetadataField
+	rule.CoRuleKeyword = streamData.CoRuleKeyword
+
+	return rule
+}
+
+func ServiceToStreamDataConversion(service models.ServiceResponse) (streamData models.StreamData) {
+	streamData.PK = service.PK
+	streamData.SK = service.SK
+	streamData.UUID = service.ServiceUUID
+	streamData.ServiceName = service.ServiceName
+	streamData.Description = service.Description
+	streamData.MoreAbout = service.MoreAbout
+	streamData.Category = service.Category
+	streamData.Like = service.Like
+	streamData.Stage = service.Stage
+	streamData.TargetSegment = service.TargetSegment
+	streamData.Deployment = service.Deployment
+	streamData.BusinessModel = service.BusinessModel
+	streamData.Pricing = service.Pricing
+	streamData.Location = service.Location
+
+	return streamData
+}

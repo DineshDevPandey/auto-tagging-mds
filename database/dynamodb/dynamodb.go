@@ -937,3 +937,19 @@ func (d *Database) AppendTagToService(cat models.Category, streamData models.Str
 
 	return err
 }
+
+func (d *Database) ProcessRuleForServices(streamData models.StreamData, services []models.ServiceResponse) error {
+	fmt.Println("inside ProcessRuleForServices")
+	rules := make([]models.RuleResponse, 0)
+	rule := utils.StreamDataToRuleConversion(streamData)
+
+	rules = append(rules, rule)
+	for _, service := range services {
+		stData := utils.ServiceToStreamDataConversion(service)
+		err := d.AttachTagWithService(stData, rules)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
