@@ -181,16 +181,21 @@ func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) boo
 	var cond [2]bool
 	for i, ruleMetadataField := range ruleMetadataFieldList {
 		cond[i] = matchCondition(ruleMetadataField, streamData, ruleKeywordList[i], rule.Operand, rule.RelationalOperator)
+		fmt.Println("inside IsTagAttachable cond[i] :", cond[i])
 	}
 
 	switch rule.KeywordOperator {
 	case AND:
+		fmt.Println("inside IsTagAttachable cond[i] AND :", cond[0] && cond[1])
 		return cond[0] && cond[1]
 	case OR:
+		fmt.Println("inside IsTagAttachable cond[i] OR :", cond[0] || cond[1])
 		return cond[0] || cond[1]
 	case "":
+		fmt.Println("inside IsTagAttachable cond[i] blank :", cond[0])
 		return cond[0]
 	default:
+		fmt.Println("inside IsTagAttachable default :", rule.KeywordOperator)
 		return false
 	}
 }
