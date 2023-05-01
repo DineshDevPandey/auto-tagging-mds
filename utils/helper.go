@@ -188,6 +188,8 @@ func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) boo
 		return cond[0] && cond[1]
 	case OR:
 		return cond[0] || cond[1]
+	case "":
+		return cond[0]
 	default:
 		return false
 	}
