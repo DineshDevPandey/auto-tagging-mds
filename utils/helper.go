@@ -231,6 +231,7 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 		}
 	} else {
 		keyword := strings.ToLower(keyword)
+		fmt.Printf("inside else : strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
 		if strings.Contains(mdValue, keyword) {
 			fmt.Printf("strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
 			return true
