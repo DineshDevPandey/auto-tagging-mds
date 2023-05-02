@@ -197,7 +197,7 @@ type RuleRequest struct {
 	Operation           string `json:"operation" validate:"required"` //CONTAIN|RELATION|SUBSCRIPTION_COUNT
 	TagKey              string `json:"tag_key" validate:"min=1"`
 	TagValue            string `json:"tag_value" validate:"min=1"`
-	MetadataField       string `json:"metadata_field" validate:"min=1"`
+	MetadataField       string `json:"metadata_field"`
 	Keyword             string `json:"keyword"`
 	KeywordOperator     string `json:"keyword_operator"`    //AND|OR
 	RelationalOperator  string `json:"relational_operator"` //GREATER_THAN|LESSER_THAN|EQUAL|GREATER_THAN_EQUAL|LESSER_THAN_EQUAL
