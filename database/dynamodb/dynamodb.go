@@ -79,7 +79,7 @@ func (d *Database) IsTagValid(key, value string) (bool, error) {
 	return false, nil
 }
 
-func (d *Database) VarifyTag(category []models.Category) error {
+func (d *Database) VerifyTag(category []models.Category) error {
 	for _, cat := range category {
 		valid, err := d.IsTagValid(cat.Key, cat.Value)
 		if err != nil {
@@ -113,7 +113,7 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank, blank)
 	}
 
-	err := d.VarifyTag(service.Category)
+	err := d.VerifyTag(service.Category)
 	if err != nil {
 		return service, err
 	}
@@ -272,7 +272,7 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUU
 	updatedService.PK = utils.GetPartitionKey(utils.SERVICE)
 	updatedService.SK = utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank, blank)
 
-	err = d.VarifyTag(updatedService.Category)
+	err = d.VerifyTag(updatedService.Category)
 	if err != nil {
 		return err
 	}
@@ -838,6 +838,13 @@ func (d *Database) CreateRule(rule models.RuleRequest) (models.RuleRequest, erro
 	rule.PK = utils.GetPartitionKey(utils.RULE)
 	rule.SK = utils.GetRangeKey(utils.RULE, blank, blank, rule.RuleUUID)
 
+	cat := make([]models.Category, 0)
+	cat = append(cat, models.Category{Key: rule.TagKey, Value: rule.TagValue})
+	err = d.VerifyTag(cat)
+	if err != nil {
+		return rule, err
+	}
+
 	err = d.insertRule(rule)
 	if err != nil {
 		return rule, err
@@ -948,6 +955,13 @@ func (d *Database) UpdateRule(updatedRule models.RuleRequest, ruleUUID string) e
 	updatedRule.CreatedAt = oldRule.CreatedAt
 	// new updated at
 	updatedRule.UpdatedAt = utils.DateString("datetime")
+
+	cat := make([]models.Category, 0)
+	cat = append(cat, models.Category{Key: updatedRule.TagKey, Value: updatedRule.TagValue})
+	err = d.VerifyTag(cat)
+	if err != nil {
+		return err
+	}
 
 	err = d.insertRule(updatedRule)
 	if err != nil {
