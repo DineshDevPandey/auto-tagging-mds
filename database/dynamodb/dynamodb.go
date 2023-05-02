@@ -877,7 +877,7 @@ func (d *Database) DeleteRule(ruleUUID string) error {
 func (d *Database) AttachTagWithService(streamData models.StreamData, rules []models.RuleResponse) error {
 
 	for i, rule := range rules {
-		fmt.Printf("rule number : %v : key : %v : value : %v\n", i, rule.TagKey, rule.TagValue)
+		fmt.Printf("rule number : %v : key : %v : value : %v\n", i+1, rule.TagKey, rule.TagValue)
 		updateDb := false
 		switch rule.Operation {
 		case "CONTAIN":

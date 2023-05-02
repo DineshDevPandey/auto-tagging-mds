@@ -28,8 +28,8 @@ const (
 )
 
 const (
-	GREATER            = "GREATER"
-	LESSER             = "LESSER"
+	GREATER_THAN       = "GREATER"
+	LESSER_THAN        = "LESSER"
 	EQUAL              = "EQUAL"
 	GREATER_THAN_EQUAL = "GREATER_THAN_EQUAL"
 	LESSER_THAN_EQUAL  = "LESSER_THAN_EQUAL"
@@ -208,11 +208,11 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
 		switch relationalOperator {
-		case GREATER:
+		case GREATER_THAN:
 			if likeCount > operand {
 				return true
 			}
-		case LESSER:
+		case LESSER_THAN:
 			if likeCount < operand {
 				return true
 			}
