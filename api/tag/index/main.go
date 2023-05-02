@@ -42,7 +42,6 @@ func initSvc() (*tagSvc, error) {
 }
 
 func (sc *tagSvc) tagIndex(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u.IsAuthorized(request)
 	tags, err := sc.db.GetAllTags()
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{

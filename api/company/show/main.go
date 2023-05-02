@@ -44,7 +44,6 @@ func initSvc() (*companySvc, error) {
 
 func (sc *companySvc) companyShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	u.IsAuthorized(request)
 	// get path parameter
 	companyName, ok := request.PathParameters["company_name"]
 	if ok != true {

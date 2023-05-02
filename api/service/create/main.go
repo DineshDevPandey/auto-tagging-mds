@@ -44,7 +44,6 @@ func initSvc() (*serviceCreateSvc, error) {
 }
 
 func (sc *serviceCreateSvc) serviceCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u.IsAuthorized(request)
 	var svc m.ServiceRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {

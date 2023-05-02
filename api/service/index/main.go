@@ -42,7 +42,6 @@ func initSvc() (*serviceIndexSvc, error) {
 }
 
 func (sc *serviceIndexSvc) serviceIndex(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u.IsAuthorized(request)
 	services, err := sc.db.GetAllServices()
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{

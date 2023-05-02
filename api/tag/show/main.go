@@ -43,7 +43,6 @@ func initSvc() (*tagSvc, error) {
 }
 
 func (sc *tagSvc) tagShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u.IsAuthorized(request)
 	// get path parameter
 	key, ok := request.PathParameters["tag_key"]
 	if ok != true {
