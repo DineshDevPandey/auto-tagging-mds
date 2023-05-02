@@ -414,12 +414,12 @@ Resources:
         Variables:
           TABLE_NAME: !Ref MDSTable   
 
-  ServiceStreamProcessor:
+  ServiceStreamProcessor1:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: streams
       Handler: streams
-      FunctionName: ServiceStreamProcessor
+      FunctionName: ServiceStreamProcessor1
       Runtime: go1.x
       Policies:
         - AWSLambdaBasicExecutionRole

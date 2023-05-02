@@ -98,7 +98,10 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 			case utils.TAG:
 				// not in assignment scope; update services
 			case utils.COMPANY:
-				// not in assignment scope; do nothing
+				err := sr.db.UpdateServiceTagForSubscriberCount(newData, rules)
+				if err != nil {
+					return err
+				}
 			}
 		case "INSERT":
 			switch entity {
@@ -119,7 +122,10 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 			case utils.TAG:
 				// not in assignment scope; update service
 			case utils.COMPANY:
-				// not in assignment scope;
+				err := sr.db.UpdateServiceTagForSubscriberCount(newData, rules)
+				if err != nil {
+					return err
+				}
 			}
 		case "REMOVE":
 			switch entity {

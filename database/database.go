@@ -29,4 +29,5 @@ type Database interface {
 
 	AttachTagWithService(service models.StreamData, rules []models.RuleResponse) error
 	ProcessRuleForServices(models.StreamData, []models.ServiceResponse) error
+	UpdateServiceTagForSubscriberCount(streamData models.StreamData, rules []models.RuleResponse) error
 }

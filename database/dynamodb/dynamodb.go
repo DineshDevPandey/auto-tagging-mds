@@ -1042,3 +1042,28 @@ func (d *Database) ProcessRuleForServices(streamData models.StreamData, services
 	}
 	return nil
 }
+
+// here stream data contains company data
+func (d *Database) UpdateServiceTagForSubscriberCount(streamData models.StreamData, rules []models.RuleResponse) error {
+
+	serviceStreamData := models.StreamData{}
+	for _, rule := range rules {
+		if rule.Operation == utils.SUBSCRIPTION_COUNT {
+
+			for _, serviceUUID := range streamData.ServiceList {
+				serviceStreamData.UUID = serviceUUID
+				// check if this service is subscribe for more than subscription threshold
+				updateDb, err := d.IsServiceEligibleForTag(serviceStreamData, rule)
+				if err != nil {
+					return err
+				}
+				fmt.Println("IsServiceEligibleForTag :", updateDb)
+
+				if updateDb {
+					d.UpdateTagToService(streamData, rule)
+				}
+			}
+		}
+	}
+	return nil
+}
