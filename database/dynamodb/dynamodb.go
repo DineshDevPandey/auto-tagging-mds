@@ -877,7 +877,7 @@ func (d *Database) DeleteRule(ruleUUID string) error {
 func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule models.RuleResponse) (bool, error) {
 
 	keyCond := expression.Key(utils.GetPartitionKeyName()).Equal(expression.Value(utils.GetPartitionKey(utils.COMPANY)))
-	filter := expression.Name("service_list").Contains(streamData.UUID)
+	filter := expression.Contains(expression.Name("service_list"), streamData.UUID)
 
 	expr, err := expression.NewBuilder().WithFilter(filter).WithKeyCondition(keyCond).Build()
 	if err != nil {
