@@ -173,7 +173,7 @@ func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) boo
 	ruleMetadataFieldList = append(ruleMetadataFieldList, rule.MetadataField)
 	ruleKeywordList = append(ruleKeywordList, rule.Keyword)
 
-	if rule.CoRuleMetadataField != "" {
+	if rule.CoRuleMetadataField != "" && rule.KeywordOperator != "" {
 		ruleMetadataFieldList = append(ruleMetadataFieldList, rule.CoRuleMetadataField)
 		ruleKeywordList = append(ruleKeywordList, rule.CoRuleKeyword)
 	}
