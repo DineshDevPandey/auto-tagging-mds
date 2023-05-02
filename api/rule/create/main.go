@@ -60,14 +60,14 @@ func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProx
 		})
 	}
 
-	err = sc.db.CreateRule(svc)
+	rule, err := sc.db.CreateRule(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, svc)
+	return u.ApiResponse(http.StatusCreated, rule)
 }
 
 func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

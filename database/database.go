@@ -9,7 +9,7 @@ type Database interface {
 	UpdateService(models.ServiceRequest, string) error
 	DeleteService(name string) error
 
-	CreateCompany(models.CompanyRequest) error
+	CreateCompany(models.CompanyRequest) (models.CompanyRequest, error)
 	GetAllCompanies() ([]models.CompanyResponse, error)
 	GetCompany(name string) (models.CompanyResponse, error)
 	UpdateCompany(models.CompanyRequest, string) error
@@ -20,10 +20,9 @@ type Database interface {
 	DeleteTag(key string, value string) error
 	GetTag(key string, value string) (models.TagListResponse, error)
 
-	CreateRule(models.RuleRequest) error
+	CreateRule(models.RuleRequest) (models.RuleRequest, error)
 	GetAllRules() ([]models.RuleResponse, error)
 	GetRule(ruleUUID string) (models.RuleResponse, error)
-	// GetRuleByUUID(ruleUUID string) (models.RuleResponse, error)
 	UpdateRule(models.RuleRequest, string) error
 	DeleteRule(ruleUUID string) error
 

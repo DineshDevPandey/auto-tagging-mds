@@ -63,7 +63,7 @@ func (sc *serviceUpdateSvc) serviceUpdate(ctx context.Context, request events.AP
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, svc)
+	return u.ApiResponse(http.StatusOK, svc)
 }
 
 func (sc *serviceUpdateSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

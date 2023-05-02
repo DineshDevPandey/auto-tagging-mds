@@ -328,18 +328,18 @@ func (d *Database) VerifyService(serviceList []string) (bool, error) {
 	return true, nil
 }
 
-func (d *Database) CreateCompany(company models.CompanyRequest) error {
+func (d *Database) CreateCompany(company models.CompanyRequest) (models.CompanyRequest, error) {
 
 	// if its a fresh entry
 	if company.CompanyUUID == "" {
 		// check if companyalready exist
 		existCompany, err := d.GetCompany(company.CompanyName)
 		if err != nil {
-			return err
+			return company, err
 		}
 
 		if existCompany.CompanyName != "" {
-			return errors.New("Company already exist")
+			return company, errors.New("Company already exist")
 		}
 
 		company.CompanyUUID = utils.GetUUID()
@@ -351,16 +351,16 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 
 	valid, err := d.VerifyService(company.ServiceList)
 	if err != nil {
-		return err
+		return company, err
 	}
 
 	if !valid {
-		return err
+		return company, err
 	}
 
 	av, err := dynamodbattribute.MarshalMap(company)
 	if err != nil {
-		return err
+		return company, err
 	}
 
 	if len(company.ServiceList) == 0 {
@@ -374,10 +374,10 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 
 	_, err = d.db.PutItem(input)
 	if err != nil {
-		return err
+		return company, err
 	}
 
-	return nil
+	return company, nil
 }
 
 func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
@@ -560,7 +560,7 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyUU
 		return err
 	}
 
-	err = d.CreateCompany(updatedCompany)
+	_, err = d.CreateCompany(updatedCompany)
 	if err != nil {
 		// TODO: restore old entry in case of error
 		return err
@@ -821,15 +821,15 @@ func (d *Database) IsDuplicateRule(rule models.RuleRequest) (bool, error) {
 	return false, nil
 }
 
-func (d *Database) CreateRule(rule models.RuleRequest) error {
+func (d *Database) CreateRule(rule models.RuleRequest) (models.RuleRequest, error) {
 	// check if rule already exist
 	isDuplicateRule, err := d.IsDuplicateRule(rule)
 	if err != nil {
-		return err
+		return rule, err
 	}
 
 	if isDuplicateRule {
-		return errors.New("Rule already exist")
+		return rule, errors.New("Rule already exist")
 	}
 
 	rule.RuleUUID = utils.GetUUID()
@@ -840,10 +840,10 @@ func (d *Database) CreateRule(rule models.RuleRequest) error {
 
 	err = d.insertRule(rule)
 	if err != nil {
-		return err
+		return rule, err
 	}
 
-	return nil
+	return rule, nil
 }
 
 func (d *Database) insertRule(rule models.RuleRequest) error {

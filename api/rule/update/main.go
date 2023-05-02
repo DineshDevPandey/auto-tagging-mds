@@ -63,7 +63,7 @@ func (sc *ruleSvc) ruleUpdate(ctx context.Context, request events.APIGatewayProx
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, svc)
+	return u.ApiResponse(http.StatusOK, svc)
 }
 
 func (sc *ruleSvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

@@ -61,14 +61,14 @@ func (sc *companySvc) companyCreate(ctx context.Context, request events.APIGatew
 		})
 	}
 
-	err = sc.db.CreateCompany(svc)
+	company, err := sc.db.CreateCompany(svc)
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{
 			ErrorMsg: aws.String(err.Error()),
 		})
 	}
 
-	return u.ApiResponse(http.StatusCreated, svc)
+	return u.ApiResponse(http.StatusCreated, company)
 }
 
 func (sc *companySvc) handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
