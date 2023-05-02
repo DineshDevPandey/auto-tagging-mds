@@ -892,7 +892,7 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
-		ProjectionExpression:      aws.String(utils.GetPartitionKeyName()),
+		// ProjectionExpression:      aws.String("company_name"),
 	}
 
 	fmt.Println("input : ", input)
@@ -903,7 +903,7 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 		return false, err
 	}
 
-	item := []models.RuleRequest{}
+	item := []models.CompanyResponse{}
 	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &item)
 	if err != nil {
 		return false, err
