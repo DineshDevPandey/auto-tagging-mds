@@ -85,14 +85,14 @@ func GetRangeKey(entity int, name, value, uuid string) string {
 	rangeKey := ""
 	switch entity {
 	case SERVICE:
-		rangeKey = "SR#" + name
+		rangeKey = "SR#" + strings.ToLower(name)
 	case COMPANY:
-		rangeKey = "CM#" + name
+		rangeKey = "CM#" + strings.ToLower(name)
 	case TAG:
 		if value == "" {
-			rangeKey = "TG#" + name
+			rangeKey = "TG#" + strings.ToLower(name)
 		} else {
-			rangeKey = "TG#" + name + "#" + value
+			rangeKey = "TG#" + strings.ToLower(name) + "#" + strings.ToLower(value) 
 		}
 	case RULE:
 		rangeKey = "RL#" + uuid
