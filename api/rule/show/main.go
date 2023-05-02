@@ -43,7 +43,7 @@ func initSvc() (*ruleSvc, error) {
 }
 
 func (sc *ruleSvc) ruleShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
+	u.IsAuthorized(request)
 	// get path parameter
 	ruleUUID, ok := request.PathParameters["rule_uuid"]
 	if ok != true {

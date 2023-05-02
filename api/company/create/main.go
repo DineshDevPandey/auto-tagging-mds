@@ -44,7 +44,8 @@ func initSvc() (*companySvc, error) {
 }
 
 func (sc *companySvc) companyCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
+	u.IsAuthorized(request)
+	
 	validate := validator.New()
 	var svc m.CompanyRequest
 

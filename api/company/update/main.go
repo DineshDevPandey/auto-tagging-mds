@@ -43,6 +43,7 @@ func initSvc() (*companySvc, error) {
 }
 
 func (sc *companySvc) companyUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	u.IsAuthorized(request)
 	var svc m.CompanyRequest
 
 	companyUUID, ok := request.PathParameters["company_name"]

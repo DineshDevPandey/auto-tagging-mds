@@ -42,7 +42,7 @@ func initSvc() (*ruleSvc, error) {
 }
 
 func (sc *ruleSvc) ruleIndex(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
+	u.IsAuthorized(request)
 	services, err := sc.db.GetAllRules()
 	if err != nil {
 		return u.ApiResponse(http.StatusBadRequest, u.ErrorBody{

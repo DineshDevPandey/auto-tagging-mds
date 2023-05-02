@@ -43,6 +43,7 @@ func initSvc() (*companySvc, error) {
 
 func (sc *companySvc) serviceDelete(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
+	u.IsAuthorized(request)
 	// get query parameter
 	companyName, ok := request.PathParameters["company_name"]
 	if ok != true {

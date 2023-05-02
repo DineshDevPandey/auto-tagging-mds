@@ -3,12 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/auto-tagging-mds/database/models"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
 )
@@ -130,6 +133,16 @@ func ApiResponse(status int, body interface{}) (events.APIGatewayProxyResponse, 
 	stringBody, _ := json.Marshal(body)
 	resp.Body = string(stringBody)
 	return resp, nil
+}
+
+func IsAuthorized(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if apiKey, ok := request.Headers["x-api-key"]; !ok || apiKey != os.Getenv("API_KEY") {
+		return ApiResponse(http.StatusUnauthorized, ErrorBody{
+			ErrorMsg: aws.String("Invalid API key"),
+		})
+	}
+
+	return events.APIGatewayProxyResponse{}, nil
 }
 
 func InitTablesName() models.Tables {

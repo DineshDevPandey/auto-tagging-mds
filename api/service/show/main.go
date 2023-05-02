@@ -43,7 +43,7 @@ func initSvc() (*serviceShowSvc, error) {
 }
 
 func (sc *serviceShowSvc) serviceShow(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
+	u.IsAuthorized(request)
 	// get path parameter
 	serviceName, ok := request.PathParameters["service_name"]
 	if ok != true {

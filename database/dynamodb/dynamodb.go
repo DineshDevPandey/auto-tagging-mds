@@ -910,8 +910,6 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 		ProjectionExpression:      aws.String("company_name"),
 	}
 
-	fmt.Println("input : ", input)
-
 	// GetItem from dynamodb table
 	result, err := d.db.Query(input)
 	if err != nil {

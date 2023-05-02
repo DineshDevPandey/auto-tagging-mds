@@ -44,6 +44,7 @@ func initSvc() (*ruleSvc, error) {
 }
 
 func (sc *ruleSvc) ruleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	u.IsAuthorized(request)
 	var svc m.RuleRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &svc); err != nil {
