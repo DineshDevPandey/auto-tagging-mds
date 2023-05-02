@@ -297,7 +297,9 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 
 func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 
-	companies := []models.CompanyResponse{}
+	companies := make([]models.CompanyResponse, 0)
+	companiesTemp := []models.Company{}
+
 	pkName := utils.GetPartitionKeyName()
 	pkPrefix := utils.GetPartitionKey(utils.COMPANY)
 
@@ -320,23 +322,29 @@ func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 		return companies, err
 	}
 
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &companies)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &companiesTemp)
 	if err != nil {
 		return companies, err
 	}
 
 	projection := aws.String("service_name")
 	// get latest service name
-	for cindex, company := range companies {
-		for sindex, srv := range company.ServiceList {
-			if srv.ServiceUUID != "" {
-				service, err := d.GetServiceByUUID(srv.ServiceUUID, projection)
-				if err == nil {
-					companies[cindex].ServiceList[sindex].ServiceUUID = srv.ServiceUUID
-					companies[cindex].ServiceList[sindex].ServiceName = service.ServiceName
-				}
+	for _, company := range companiesTemp {
+
+		temp := models.CompanyResponse{}
+		s := make([]models.Services, 0)
+		for _, srvId := range company.ServiceList {
+			service, err := d.GetServiceByUUID(srvId, projection)
+			if err == nil {
+				s = append(s, models.Services{ServiceUUID: srvId, ServiceName: service.ServiceName})
 			}
 		}
+		temp.CompanyUUID = company.CompanyUUID
+		temp.CreatedAt = company.CreatedAt
+		temp.UpdatedAt = company.UpdatedAt
+		temp.Description = company.Description
+		temp.ServiceList = s
+		companies = append(companies, temp)
 	}
 
 	return companies, nil
@@ -345,6 +353,8 @@ func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 
 	company := models.CompanyResponse{}
+	companyTemp := models.Company{}
+
 	pkName := utils.GetPartitionKeyName()
 	pk := utils.GetPartitionKey(utils.COMPANY)
 
@@ -368,22 +378,26 @@ func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 		return company, err
 	}
 
-	err = dynamodbattribute.UnmarshalMap(result.Item, &company)
+	err = dynamodbattribute.UnmarshalMap(result.Item, &companyTemp)
 	if err != nil {
 		return company, err
 	}
 
 	projection := aws.String("service_name")
 	// get latest service name
-	for sindex, srv := range company.ServiceList {
-		if srv.ServiceUUID != "" {
-			service, err := d.GetServiceByUUID(srv.ServiceUUID, projection)
-			if err == nil {
-				company.ServiceList[sindex].ServiceUUID = srv.ServiceUUID
-				company.ServiceList[sindex].ServiceName = service.ServiceName
-			}
+	s := make([]models.Services, 0)
+	for _, srvId := range companyTemp.ServiceList {
+		service, err := d.GetServiceByUUID(srvId, projection)
+		if err == nil {
+			s = append(s, models.Services{ServiceUUID: srvId, ServiceName: service.ServiceName})
 		}
 	}
+
+	company.CompanyUUID = companyTemp.CompanyUUID
+	company.CreatedAt = companyTemp.CreatedAt
+	company.UpdatedAt = companyTemp.UpdatedAt
+	company.Description = companyTemp.Description
+	company.ServiceList = s
 
 	return company, nil
 }
@@ -892,7 +906,7 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
-		// ProjectionExpression:      aws.String("company_name"),
+		ProjectionExpression:      aws.String("company_name"),
 	}
 
 	fmt.Println("input : ", input)
