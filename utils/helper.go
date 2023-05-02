@@ -40,6 +40,12 @@ const (
 )
 
 const (
+	CONTAIN            = "CONTAIN"
+	RELATION           = "RELATION"
+	SUBSCRIPTION_COUNT = "SUBSCRIPTION_COUNT"
+)
+
+const (
 	AND = "AND"
 	OR  = "OR"
 )
@@ -165,7 +171,7 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 	return av
 }
 
-func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) bool {
+func IsServiceEligibleForTag(streamData models.StreamData, rule models.RuleResponse) bool {
 
 	fmt.Println("IsTagAttachable start")
 

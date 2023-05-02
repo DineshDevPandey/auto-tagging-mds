@@ -874,28 +874,71 @@ func (d *Database) DeleteRule(ruleUUID string) error {
 	return nil
 }
 
+func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule models.RuleResponse) (bool, error) {
+
+	keyCond := expression.Key(utils.GetPartitionKeyName()).Equal(expression.Value(utils.GetPartitionKey(utils.COMPANY)))
+	filter := expression.Name("service_list").Contains(streamData.UUID)
+
+	expr, err := expression.NewBuilder().WithFilter(filter).WithKeyCondition(keyCond).Build()
+	if err != nil {
+		fmt.Printf("Expression builder error : %v\n", err)
+		return false, err
+	}
+
+	// input for GetItem
+	input := &dynamodb.QueryInput{
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(d.tableName.MDSTable),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      aws.String(utils.GetPartitionKeyName()),
+	}
+
+	// GetItem from dynamodb table
+	result, err := d.db.Query(input)
+	if err != nil {
+		return false, err
+	}
+
+	item := []models.RuleRequest{}
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &item)
+	if err != nil {
+		return false, err
+	}
+	if rule.SubscriptionCount < len(item) {
+		return true, nil
+	}
+	return false, err
+}
+
+// execute when new service is created, here streamData contains service data
 func (d *Database) AttachTagWithService(streamData models.StreamData, rules []models.RuleResponse) error {
 
 	for i, rule := range rules {
 		fmt.Printf("rule number : %v : key : %v : value : %v\n", i+1, rule.TagKey, rule.TagValue)
 		updateDb := false
+		var err error
+
 		switch rule.Operation {
-		case "CONTAIN":
+		case utils.CONTAIN:
 			fallthrough
-		case "RELATION":
-			updateDb = utils.IsTagAttachable(streamData, rules[i])
-			fmt.Println("called IsTagAttachable : updateDb ;", updateDb)
-		case "SUBSCRIPTION_COUNT":
-			// TODO: create logic for condition
-		}
-		if updateDb {
-			cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
-			if isPresent := utils.IsTagAlreadyPresent(streamData.Category, cat); isPresent {
-				fmt.Printf("tag already present : key : %v : value : %v\n", cat.Key, cat.Value)
-				return nil
+
+		case utils.RELATION:
+			updateDb = utils.IsServiceEligibleForTag(streamData, rules[i])
+			fmt.Println("IsServiceEligibleForTag :", updateDb)
+
+		case utils.SUBSCRIPTION_COUNT:
+			// check if this service is subscribe for more than subscription threshold
+			updateDb, err = d.IsServiceEligibleForTag(streamData, rule)
+			if err != nil {
+				return err
 			}
-			d.AppendTagToService(cat, streamData)
-			fmt.Println("streamData updated")
+			fmt.Println("IsServiceEligibleForTag :", updateDb)
+		}
+
+		if updateDb {
+			d.UpdateTagToService(streamData, rule)
 		}
 	}
 	return nil
@@ -938,14 +981,40 @@ func (d *Database) AppendTagToService(cat models.Category, streamData models.Str
 	return err
 }
 
+// here streamData contains service data
+func (d *Database) UpdateTagToService(streamData models.StreamData, rule models.RuleResponse) error {
+	cat := models.Category{Key: rule.TagKey, Value: rule.TagValue}
+	if isPresent := utils.IsTagAlreadyPresent(streamData.Category, cat); isPresent {
+		fmt.Printf("tag already present : key : %v : value : %v\n", cat.Key, cat.Value)
+		return nil
+	}
+
+	d.AppendTagToService(cat, streamData)
+	fmt.Println("streamData updated")
+	return nil
+}
+
+// execute when new rule is created, here streamData contains rule
 func (d *Database) ProcessRuleForServices(streamData models.StreamData, services []models.ServiceResponse) error {
-	fmt.Println("inside ProcessRuleForServices")
-	rules := make([]models.RuleResponse, 0)
+	fmt.Println("start ProcessRuleForServices")
 	rule := utils.StreamDataToRuleConversion(streamData)
 
+	rules := make([]models.RuleResponse, 0)
 	rules = append(rules, rule)
 	for _, service := range services {
 		stData := utils.ServiceToStreamDataConversion(service)
+
+		if rule.Operation == utils.SUBSCRIPTION_COUNT {
+			// check if this service is subscribe for more than subscription threshold
+			updateDb, err := d.IsServiceEligibleForTag(stData, rule)
+			if err != nil {
+				return err
+			}
+			if updateDb {
+				d.UpdateTagToService(streamData, rule)
+			}
+		}
+
 		err := d.AttachTagWithService(stData, rules)
 		if err != nil {
 			return err

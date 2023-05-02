@@ -86,7 +86,7 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 			switch entity {
 			case utils.SERVICE:
 				// do tag analysis
-				if oldData.Description == newData.Description {
+				if oldData.Description != newData.Description {
 					// fetch rules and add tags in service
 					err := sr.db.AttachTagWithService(newData, rules)
 					if err != nil {
