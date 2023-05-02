@@ -210,10 +210,11 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 	// mdValue : description value, like value
 	mdValue := getMetaDataFieldValue(ruleMetadataField, streamData)
 	fmt.Println("matchCondition : metadata field value : ", mdValue)
+	fmt.Printf("matchCondition : ruleMetadataField : %v : relationalOperator : %v: Is like == like %v\n", ruleMetadataField, relationalOperator, strings.ToLower(ruleMetadataField) == LIKE)
 
 	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
-
+		fmt.Println("---------- likeCount : ", likeCount)
 		switch relationalOperator {
 		case GREATER_THAN:
 			fmt.Printf("GREATER_THAN :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount > operand)
