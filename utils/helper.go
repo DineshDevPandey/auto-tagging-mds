@@ -25,6 +25,10 @@ const (
 	LOCATION      = "location"
 	LIKE          = "like"
 	TARGETSEGMENT = "targetsegment"
+	PRICING       = "pricing"
+	BUSINESSMODEL = "business_model"
+	DEPLOYMENT    = "deployment"
+	STAGE         = "stage"
 )
 
 const (
@@ -214,7 +218,6 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 
 	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
-		fmt.Println("---------- likeCount : ", likeCount)
 		switch relationalOperator {
 		case GREATER_THAN:
 			fmt.Printf("GREATER_THAN :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount > operand)
@@ -266,6 +269,14 @@ func getMetaDataFieldValue(md string, streamData models.StreamData) string {
 		value = fmt.Sprint(streamData.Like)
 	case TARGETSEGMENT:
 		value = streamData.TargetSegment
+	case PRICING:
+		value = streamData.Pricing
+	case BUSINESSMODEL:
+		value = streamData.BusinessModel
+	case DEPLOYMENT:
+		value = streamData.Deployment
+	case STAGE:
+		value = streamData.Stage
 	default:
 		return ""
 	}
