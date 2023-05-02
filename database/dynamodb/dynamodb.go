@@ -340,6 +340,7 @@ func (d *Database) GetAllCompanies() ([]models.CompanyResponse, error) {
 			}
 		}
 		temp.CompanyUUID = company.CompanyUUID
+		temp.CompanyName = company.CompanyName
 		temp.CreatedAt = company.CreatedAt
 		temp.UpdatedAt = company.UpdatedAt
 		temp.Description = company.Description
@@ -392,8 +393,8 @@ func (d *Database) GetCompany(name string) (models.CompanyResponse, error) {
 			s = append(s, models.Services{ServiceUUID: srvId, ServiceName: service.ServiceName})
 		}
 	}
-
 	company.CompanyUUID = companyTemp.CompanyUUID
+	company.CompanyName = companyTemp.CompanyName
 	company.CreatedAt = companyTemp.CreatedAt
 	company.UpdatedAt = companyTemp.UpdatedAt
 	company.Description = companyTemp.Description
