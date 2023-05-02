@@ -163,7 +163,7 @@ func NilToEmptySlice(av map[string]*dynamodb.AttributeValue, field string) map[s
 
 func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) bool {
 
-	fmt.Println("inside IsTagAttachable ")
+	fmt.Println("IsTagAttachable start")
 
 	// ruleMetadataFieldList contains MetadataField and CoRuleMetadataField
 	ruleMetadataFieldList := make([]string, 0)
@@ -178,24 +178,30 @@ func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) boo
 		ruleKeywordList = append(ruleKeywordList, rule.CoRuleKeyword)
 	}
 
+	if len(ruleMetadataFieldList) == 1 {
+		fmt.Println("single condition")
+	} else {
+		fmt.Println("composite condition")
+	}
+
 	var cond [2]bool
 	for i, ruleMetadataField := range ruleMetadataFieldList {
 		cond[i] = matchCondition(ruleMetadataField, streamData, ruleKeywordList[i], rule.Operand, rule.RelationalOperator)
-		fmt.Println("inside IsTagAttachable cond[i] :", cond[i])
+		fmt.Printf("Is :%v condition matched :%v\n", i, cond[i])
 	}
 
 	switch rule.KeywordOperator {
 	case AND:
-		fmt.Println("inside IsTagAttachable cond[i] AND :", cond[0] && cond[1])
+		fmt.Println("composite condition with AND: is true :", cond[0] && cond[1])
 		return cond[0] && cond[1]
 	case OR:
-		fmt.Println("inside IsTagAttachable cond[i] OR :", cond[0] || cond[1])
+		fmt.Println("composite condition with OR: is true :", cond[0] || cond[1])
 		return cond[0] || cond[1]
 	case "":
-		fmt.Println("inside IsTagAttachable cond[i] blank :", cond[0])
+		fmt.Println("single condition : is true :", cond[0])
 		return cond[0]
 	default:
-		fmt.Println("inside IsTagAttachable default :", rule.KeywordOperator)
+		fmt.Println("unknown keyword operator")
 		return false
 	}
 }
@@ -203,7 +209,7 @@ func IsTagAttachable(streamData models.StreamData, rule models.RuleResponse) boo
 func matchCondition(ruleMetadataField string, streamData models.StreamData, keyword string, operand int, relationalOperator string) bool {
 	// mdValue : description value, like value
 	mdValue := getMetaDataFieldValue(ruleMetadataField, streamData)
-	fmt.Println("getMetaDataFieldValue : ", mdValue)
+	fmt.Println("matchCondition : metadata field value : ", mdValue)
 
 	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
@@ -231,9 +237,9 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 		}
 	} else {
 		keyword := strings.ToLower(keyword)
-		fmt.Printf("inside else : strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
+		fmt.Printf("CONTAIN : keyword %v : mdValue : %v", keyword, mdValue)
 		if strings.Contains(mdValue, keyword) {
-			fmt.Printf("strings.Contains : keyword %v : mdValue : %v", keyword, mdValue)
+			fmt.Println("CONTAIN : found keyword in metadata field value")
 			return true
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/auto-tagging-mds/database"
@@ -42,37 +43,23 @@ func initSvc() (*streamSvc, error) {
 
 func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEvent) error {
 
-	fmt.Printf("stream started : streamHandler\n")
-	// fetch all rules
-	// var wg sync.WaitGroup
+	fmt.Printf(" %v stream started : streamHandler\n", strings.Repeat("*", 30))
 
-	// wg.Add(1)
 	rules, err := sr.db.GetAllRules()
 	if err != nil {
 		return nil
 	}
 
-	// wg.Add(1)
-	// tags, err := sr.db.GetAllTags()
-	// if err != nil {
-	// 	return nil
-	// }
-
-	// wg.Add(1)
 	services, err := sr.db.GetAllServices()
 	if err != nil {
 		return nil
 	}
 
-	// wg.Wait()
-
-	fmt.Printf("stream started : GetAllRules : %v\n", len(rules))
+	fmt.Printf("rule count : %v service count : %v\n", len(rules), len(services))
 
 	for ii, record := range event.Records {
 
 		fmt.Printf("stream : current %v total : %v\n", ii, len(event.Records))
-		// continue
-		// fmt.Printf("Continue didn't work\n")
 
 		change := record.Change
 		newImage := change.NewImage
@@ -117,13 +104,14 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 			switch entity {
 			case utils.SERVICE:
 				// fetch rules and add tags in service
-				fmt.Println("calling AttachTagWithService")
+				fmt.Println("New services created")
 				err := sr.db.AttachTagWithService(newData, rules)
 				if err != nil {
 					return err
 				}
 			case utils.RULE:
 				// may need to update services (tag analysys)
+				fmt.Println("New rule created")
 				err := sr.db.ProcessRuleForServices(newData, services)
 				if err != nil {
 					return err
