@@ -895,6 +895,8 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 		ProjectionExpression:      aws.String(utils.GetPartitionKeyName()),
 	}
 
+	fmt.Println("input : ", input)
+
 	// GetItem from dynamodb table
 	result, err := d.db.Query(input)
 	if err != nil {
@@ -906,6 +908,9 @@ func (d *Database) IsServiceEligibleForTag(streamData models.StreamData, rule mo
 	if err != nil {
 		return false, err
 	}
+
+	fmt.Println("No of companies : ", len(item))
+	fmt.Println("SubscriptionCount : ", rule.SubscriptionCount)
 	if rule.SubscriptionCount < len(item) {
 		return true, nil
 	}
