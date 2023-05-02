@@ -704,6 +704,8 @@ func (d *Database) DeleteTag(key string, value string) error {
 	skName := utils.GetRangeKeyName()
 	sk := utils.GetRangeKey(utils.TAG, key, value, blank)
 
+	fmt.Println("DeleteTag sk :", sk)
+
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			pkName: {
