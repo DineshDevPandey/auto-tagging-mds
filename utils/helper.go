@@ -213,24 +213,30 @@ func matchCondition(ruleMetadataField string, streamData models.StreamData, keyw
 
 	if strings.ToLower(ruleMetadataField) == LIKE {
 		likeCount, _ := strconv.Atoi(mdValue)
+
 		switch relationalOperator {
 		case GREATER_THAN:
+			fmt.Printf("GREATER_THAN :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount > operand)
 			if likeCount > operand {
 				return true
 			}
 		case LESSER_THAN:
+			fmt.Printf("LESSER_THAN :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount < operand)
 			if likeCount < operand {
 				return true
 			}
 		case GREATER_THAN_EQUAL:
+			fmt.Printf("GREATER_THAN_EQUAL :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount >= operand)
 			if likeCount >= operand {
 				return true
 			}
 		case LESSER_THAN_EQUAL:
+			fmt.Printf("LESSER_THAN_EQUAL :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount <= operand)
 			if likeCount <= operand {
 				return true
 			}
 		case EQUAL:
+			fmt.Printf("EQUAL :Checking condition service_likeCount :%v rule like_count %v : matched : %v\n", likeCount, operand, likeCount == operand)
 			if likeCount == operand {
 				return true
 			}
