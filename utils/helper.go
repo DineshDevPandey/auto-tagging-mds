@@ -136,6 +136,7 @@ func ApiResponse(status int, body interface{}) (events.APIGatewayProxyResponse, 
 }
 
 func IsAuthorized(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	fmt.Printf("IsAuthorized : request.Headers : %v : \n", request.Headers)
 	fmt.Printf("IsAuthorized : header : %v : key : %v\n", request.Headers["x-api-key"], os.Getenv("API_KEY"))
 	if apiKey, ok := request.Headers["x-api-key"]; !ok || apiKey != os.Getenv("API_KEY") {
 		return ApiResponse(http.StatusUnauthorized, ErrorBody{
