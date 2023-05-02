@@ -13,6 +13,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const DELIMITER = "*=*"
+
 const (
 	SERVICE = iota
 	COMPANY
@@ -95,7 +97,7 @@ func GetRangeKey(entity int, name, value, uuid string) string {
 	case RULE:
 		rangeKey = "RL#" + uuid
 	}
-	return rangeKey
+	return EncodeSpace(rangeKey)
 }
 
 func GetPartitionKeyName() string {
@@ -130,6 +132,24 @@ func ApiResponse(status int, body interface{}) (events.APIGatewayProxyResponse, 
 	stringBody, _ := json.Marshal(body)
 	resp.Body = string(stringBody)
 	return resp, nil
+}
+
+func EncodeSpace(key string) string {
+	if strings.Contains(key, "%20") {
+		key = strings.ReplaceAll(key, "%20", DELIMITER)
+	}
+
+	if strings.Contains(key, " ") {
+		key = strings.ReplaceAll(key, " ", DELIMITER)
+	}
+	return key
+}
+
+func DecodeSpace(key string) string {
+	if strings.Contains(key, DELIMITER) {
+		key = strings.ReplaceAll(key, DELIMITER, " ")
+	}
+	return key
 }
 
 func InitTablesName() models.Tables {
