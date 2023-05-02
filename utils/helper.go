@@ -24,7 +24,7 @@ const (
 	DESCRIPTION   = "description"
 	LOCATION      = "location"
 	LIKE          = "like"
-	TARGETSEGMENT = "targetsegment"
+	TARGETSEGMENT = "target_segment"
 	PRICING       = "pricing"
 	BUSINESSMODEL = "business_model"
 	DEPLOYMENT    = "deployment"
