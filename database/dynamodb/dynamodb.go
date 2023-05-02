@@ -41,6 +41,57 @@ func New(tablesName models.Tables) (*Database, error) {
 	return &db, nil
 }
 
+func (d *Database) IsTagValid(key, value string) (bool, error) {
+
+	pkName := utils.GetPartitionKeyName()
+	pk := utils.GetPartitionKey(utils.TAG)
+
+	skName := utils.GetRangeKeyName()
+	sk := utils.GetRangeKey(utils.TAG, key, value, blank)
+
+	input := &dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			pkName: {
+				S: aws.String(pk),
+			},
+			skName: {
+				S: aws.String(sk),
+			},
+		},
+		TableName: aws.String(d.tableName.MDSTable),
+	}
+
+	result, err := d.db.GetItem(input)
+	if err != nil {
+		return false, err
+	}
+
+	tag := models.TagResponse{}
+	err = dynamodbattribute.UnmarshalMap(result.Item, &tag)
+	if err != nil {
+		return false, err
+	}
+
+	if tag.Key != "" {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (d *Database) VarifyTag(category []models.Category) error {
+	for _, cat := range category {
+		valid, err := d.IsTagValid(cat.Key, cat.Value)
+		if err != nil {
+			return err
+		}
+		if !valid {
+			return errors.New(fmt.Sprintf("Invalid tag : (%v:%v)", cat.Key, cat.Value))
+		}
+	}
+	return nil
+}
+
 func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceRequest, error) {
 
 	// if its a fresh entry
@@ -60,6 +111,11 @@ func (d *Database) CreateService(service models.ServiceRequest) (models.ServiceR
 		service.CreatedAt, service.UpdatedAt = datetime, datetime
 		service.PK = utils.GetPartitionKey(utils.SERVICE)
 		service.SK = utils.GetRangeKey(utils.SERVICE, service.ServiceName, blank, blank)
+	}
+
+	err := d.VarifyTag(service.Category)
+	if err != nil {
+		return service, err
 	}
 
 	av, err := dynamodbattribute.MarshalMap(service)
@@ -215,6 +271,12 @@ func (d *Database) UpdateService(updatedService models.ServiceRequest, serviceUU
 	updatedService.UpdatedAt = utils.DateString("datetime")
 	updatedService.PK = utils.GetPartitionKey(utils.SERVICE)
 	updatedService.SK = utils.GetRangeKey(utils.SERVICE, updatedService.ServiceName, blank, blank)
+
+	err = d.VarifyTag(updatedService.Category)
+	if err != nil {
+		return err
+	}
+
 	_, err = d.CreateService(updatedService)
 	if err != nil {
 		// TODO: restore old entry in case of error
@@ -252,6 +314,20 @@ func (d *Database) DeleteService(name string) error {
 	return nil
 }
 
+func (d *Database) VerifyService(serviceList []string) (bool, error) {
+	projection := aws.String("service_name")
+	for _, serviceId := range serviceList {
+		s, err := d.GetServiceByUUID(serviceId, projection)
+		if err != nil {
+			return false, err
+		}
+		if s.ServiceName == "" {
+			return false, errors.New(fmt.Sprintf("Service %s not found", serviceId))
+		}
+	}
+	return true, nil
+}
+
 func (d *Database) CreateCompany(company models.CompanyRequest) error {
 
 	// if its a fresh entry
@@ -271,6 +347,15 @@ func (d *Database) CreateCompany(company models.CompanyRequest) error {
 		company.CreatedAt, company.UpdatedAt = datetime, datetime
 		company.PK = utils.GetPartitionKey(utils.COMPANY)
 		company.SK = utils.GetRangeKey(utils.COMPANY, company.CompanyName, blank, blank)
+	}
+
+	valid, err := d.VerifyService(company.ServiceList)
+	if err != nil {
+		return err
+	}
+
+	if !valid {
+		return err
 	}
 
 	av, err := dynamodbattribute.MarshalMap(company)
@@ -465,6 +550,16 @@ func (d *Database) UpdateCompany(updatedCompany models.CompanyRequest, companyUU
 	updatedCompany.UpdatedAt = utils.DateString("datetime")
 	updatedCompany.PK = utils.GetPartitionKey(utils.COMPANY)
 	updatedCompany.SK = utils.GetRangeKey(utils.COMPANY, updatedCompany.CompanyName, blank, blank)
+
+	valid, err := d.VerifyService(updatedCompany.ServiceList)
+	if err != nil {
+		return err
+	}
+
+	if !valid {
+		return err
+	}
+
 	err = d.CreateCompany(updatedCompany)
 	if err != nil {
 		// TODO: restore old entry in case of error
