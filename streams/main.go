@@ -95,6 +95,12 @@ func (sr *streamSvc) streamHandler(ctx context.Context, event models.DynamoDBEve
 				}
 			case utils.RULE:
 				// do tag aanalysis
+				// may need to update services (tag analysys)
+				fmt.Println("Rule modified")
+				err := sr.db.ProcessRuleForServices(newData, services)
+				if err != nil {
+					return err
+				}
 			case utils.TAG:
 				// not in assignment scope; update services
 			case utils.COMPANY:

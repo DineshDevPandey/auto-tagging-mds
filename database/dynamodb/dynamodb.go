@@ -1010,7 +1010,7 @@ func (d *Database) UpdateTagToService(streamData models.StreamData, rule models.
 	}
 
 	d.AppendTagToService(cat, streamData)
-	fmt.Println("streamData updated")
+	fmt.Println("streamData updated : cat : ", cat)
 	return nil
 }
 
